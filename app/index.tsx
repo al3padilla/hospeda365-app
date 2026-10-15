@@ -3,5 +3,5 @@ import { useAuth } from '../contexto/AuthContext';
 
 export default function Index() {
   const { estaAutenticado } = useAuth();
-  return <Redirect href={estaAutenticado ? '/(tabs)/perfil' : '/login'} />;
+  return <Redirect href={estaAutenticado ? '/(tabs)' : '/login'} />;
 }
