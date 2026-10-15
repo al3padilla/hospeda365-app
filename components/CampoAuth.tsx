@@ -4,6 +4,7 @@ import { COLORES, conAlfa } from "../constants/colors";
 import Icono, { type NombreIcono } from "./ui/Icono";
 import Texto from "./ui/Texto";
 import { estilosCampoAuth as styles } from "../estilos/cuenta";
+import { AUTH_LIMITS } from '../utils/authValidation';
 
 type CampoAuthProps = Omit<TextInputProps, "style" | "editable"> & {
   label: string;
@@ -46,10 +47,13 @@ export default function CampoAuth({
       <View>
         <TextInput
           {...props}
+          maxLength={props.maxLength ?? (esPassword ? AUTH_LIMITS.password : props.keyboardType === 'email-address' ? AUTH_LIMITS.email : props.keyboardType === 'phone-pad' ? AUTH_LIMITS.phone : AUTH_LIMITS.name)}
+          autoCorrect={false}
           editable={!disabled}
           secureTextEntry={esPassword && !visible}
           placeholderTextColor={conAlfa(COLORES.mist, 0.6)}
           accessibilityLabel={label}
+          accessibilityHint={error}
           onFocus={(e) => {
             setEnfocado(true);
             props.onFocus?.(e);
@@ -70,6 +74,7 @@ export default function CampoAuth({
           <Pressable
             onPress={() => setVisible((v) => !v)}
             accessibilityLabel={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
+            accessibilityRole="button"
             style={styles.ojo}
             hitSlop={6}
           >
@@ -79,7 +84,7 @@ export default function CampoAuth({
       </View>
 
       {hayError ? (
-        <Texto color={COLORES.rojo} tamano={12} style={styles.textoError}>
+        <Texto accessibilityLiveRegion="polite" color={COLORES.rojo} tamano={12} style={styles.textoError}>
           {error}
         </Texto>
       ) : null}

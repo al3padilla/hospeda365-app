@@ -6,6 +6,7 @@ import { formatearFecha } from "../datos/fechas";
 import { useNavegacionHotel } from "../hooks/useNavegacionHotel";
 import { useResponsive } from "../hooks/useResponsive";
 import FormularioLogin from "./FormularioLogin";
+import BannerError from './BannerError';
 import { PageLoader } from "./Loader";
 import Aparecer from "./ui/Aparecer";
 import Boton from "./ui/Boton";
@@ -57,7 +58,7 @@ export default function PanelCuenta() {
   const router = useRouter();
   const { irASeccion } = useNavegacionHotel();
   const { esSm, columnas } = useResponsive();
-  const { usuario, nombreCompleto, iniciales, estaAutenticado, state, logout } = useAuth();
+  const { usuario, nombreCompleto, iniciales, estaAutenticado, state, logout, error, limpiarError } = useAuth();
 
   if (state.estado === "inicializando") {
     return <PageLoader titulo="Verificando tu sesión…" />;
@@ -74,6 +75,7 @@ export default function PanelCuenta() {
 
   return (
     <View style={styles.seccion}>
+      {error && <BannerError mensaje={error.mensaje} onCerrar={limpiarError} />}
       <Aparecer style={[styles.tarjeta, styles.cabecera, esSm && styles.cabeceraFila]}>
         <View style={styles.avatar}>
           <Texto peso="bold" color={COLORES.foam} tamano={20}>

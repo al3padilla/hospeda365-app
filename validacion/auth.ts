@@ -1,16 +1,11 @@
 import type { Credenciales, DatosRegistro } from "../servicios/tiposAuth";
+import { AUTH_LIMITS, validateAuth, validPhone } from '../utils/authValidation';
 
 /** Objeto vacío = formulario válido. */
 export type ErroresCampo<T> = Partial<Record<keyof T, string>>;
 
-// Permisivo a propósito: el correo real se confirma por verificación.
-const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-// Teléfono de El Salvador: 8 dígitos, opcionalmente con +503.
-const REGEX_TELEFONO = /^(\+?503[\s-]?)?[267]\d{3}[\s-]?\d{4}$/;
-
 export const REGLAS_PASSWORD = {
-  longitudMinima: 8,
+  longitudMinima: 12,
   requiereMayuscula: true,
   requiereMinuscula: true,
   requiereNumero: true,
@@ -23,10 +18,11 @@ export function requisitosFaltantes(password: string): string[] {
   if (password.length < REGLAS_PASSWORD.longitudMinima) {
     faltantes.push(`al menos ${REGLAS_PASSWORD.longitudMinima} caracteres`);
   }
-  if (REGLAS_PASSWORD.requiereMayuscula && !/[A-ZÁÉÍÓÚÑ]/.test(password)) {
+  if (password.length > AUTH_LIMITS.password || /[\u0000-\u001F\u007F]/.test(password)) faltantes.push('máximo 128 caracteres sin controles');
+  if (REGLAS_PASSWORD.requiereMayuscula && !/[A-Z]/.test(password)) {
     faltantes.push("una letra mayúscula");
   }
-  if (REGLAS_PASSWORD.requiereMinuscula && !/[a-záéíóúñ]/.test(password)) {
+  if (REGLAS_PASSWORD.requiereMinuscula && !/[a-z]/.test(password)) {
     faltantes.push("una letra minúscula");
   }
   if (REGLAS_PASSWORD.requiereNumero && !/\d/.test(password)) {
@@ -48,68 +44,25 @@ export function fuerzaPassword(password: string): 0 | 1 | 2 | 3 {
 }
 
 export function validarLogin(datos: Credenciales): ErroresCampo<Credenciales> {
+  const base = validateAuth({ name: '', surname: '', email: datos.email, password: datos.password, confirmation: '' }, false);
   const errores: ErroresCampo<Credenciales> = {};
-
-  const email = datos.email.trim();
-  if (email.length === 0) {
-    errores.email = "El correo es obligatorio.";
-  } else if (!REGEX_EMAIL.test(email)) {
-    errores.email = "Ingresa un correo válido.";
-  }
-
-  if (datos.password.length === 0) {
-    errores.password = "La contraseña es obligatoria.";
-  }
-
+  if (base.email) errores.email = base.email;
+  if (base.password) errores.password = base.password;
   return errores;
 }
 
 export function validarRegistro(
   datos: DatosRegistro,
 ): ErroresCampo<DatosRegistro> {
+  const base = validateAuth({ name: datos.nombre, surname: datos.apellido,
+    email: datos.email, password: datos.password, confirmation: datos.confirmPassword }, true);
   const errores: ErroresCampo<DatosRegistro> = {};
-
-  const nombre = datos.nombre.trim();
-  if (nombre.length === 0) {
-    errores.nombre = "El nombre es obligatorio.";
-  } else if (nombre.length < 2) {
-    errores.nombre = "El nombre debe tener al menos 2 caracteres.";
-  }
-
-  const apellido = datos.apellido.trim();
-  if (apellido.length === 0) {
-    errores.apellido = "El apellido es obligatorio.";
-  } else if (apellido.length < 2) {
-    errores.apellido = "El apellido debe tener al menos 2 caracteres.";
-  }
-
-  const email = datos.email.trim();
-  if (email.length === 0) {
-    errores.email = "El correo es obligatorio.";
-  } else if (!REGEX_EMAIL.test(email)) {
-    errores.email = "Ingresa un correo válido.";
-  }
-
-  const telefono = datos.telefono.trim();
-  if (telefono.length === 0) {
-    errores.telefono = "El teléfono es obligatorio.";
-  } else if (!REGEX_TELEFONO.test(telefono)) {
-    errores.telefono = "Ingresa un teléfono válido (ej. 7123 4567).";
-  }
-
-  const faltantes = requisitosFaltantes(datos.password);
-  if (datos.password.length === 0) {
-    errores.password = "La contraseña es obligatoria.";
-  } else if (faltantes.length > 0) {
-    errores.password = `La contraseña necesita ${faltantes.join(", ")}.`;
-  }
-
-  if (datos.confirmPassword.length === 0) {
-    errores.confirmPassword = "Confirma tu contraseña.";
-  } else if (datos.password !== datos.confirmPassword) {
-    errores.confirmPassword = "Las contraseñas no coinciden.";
-  }
-
+  if (base.name) errores.nombre = base.name;
+  if (base.surname) errores.apellido = base.surname;
+  if (base.email) errores.email = base.email;
+  if (base.password) errores.password = base.password;
+  if (base.confirmation) errores.confirmPassword = base.confirmation;
+  if (!validPhone(datos.telefono.trim())) errores.telefono = 'Ingresa un teléfono válido (ej. 7123 4567).';
   return errores;
 }
 

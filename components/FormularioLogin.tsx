@@ -15,18 +15,10 @@ import { estilosFormularioLogin as styles } from "../estilos/cuenta";
 
 export default function FormularioLogin() {
   const router = useRouter();
-  const { login, estaAutenticado, usuario, estaCargando, error, limpiarError } = useAuth();
+  const { login, estaCargando, error, limpiarError } = useAuth();
 
   const [datos, setDatos] = useState<Credenciales>({ email: "", password: "" });
   const [errores, setErrores] = useState<ErroresCampo<Credenciales>>({});
-
-  // También redirige tras un login exitoso, cuando el Context actualiza `usuario`.
-  useEffect(() => {
-    if (estaAutenticado && usuario) {
-      vibrarExito();
-      router.replace("/perfil");
-    }
-  }, [estaAutenticado, usuario, router]);
 
   useEffect(() => {
     if (error) vibrarError();
@@ -46,7 +38,7 @@ export default function FormularioLogin() {
     setErrores(nuevosErrores);
     if (!sinErrores(nuevosErrores)) return;
 
-    await login({ email: datos.email.trim(), password: datos.password });
+    if (await login({ email: datos.email.trim(), password: datos.password })) vibrarExito();
   }
 
   return (

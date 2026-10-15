@@ -35,6 +35,7 @@ export type AuthAction =
   | { type: "OPERACION_INICIADA" }
   | { type: "AUTENTICACION_EXITOSA"; payload: Sesion }
   | { type: "AUTENTICACION_FALLIDA"; payload: ErrorVisible }
+  | { type: "OPERACION_FALLIDA"; payload: ErrorVisible }
   | { type: "SESION_CERRADA" }
   | { type: "PERFIL_ACTUALIZADO"; payload: Usuario }
   | { type: "ERROR_LIMPIADO" };
@@ -77,6 +78,9 @@ export function authReducer(state: AuthState, action: AuthAction): AuthState {
     case "SESION_CERRADA":
       return { ...estadoInicial, estado: "no_autenticado" };
 
+    case 'OPERACION_FALLIDA':
+      return { ...state, estado: state.usuario ? 'autenticado' : 'no_autenticado', error: action.payload };
+
     case "PERFIL_ACTUALIZADO":
       if (state.estado !== "autenticado") return state;
       return { ...state, usuario: action.payload };
@@ -90,7 +94,7 @@ export function authReducer(state: AuthState, action: AuthAction): AuthState {
 }
 
 export function estaAutenticado(state: AuthState): boolean {
-  return state.estado === "autenticado" && state.usuario !== null;
+  return state.usuario !== null && (state.estado === "autenticado" || state.estado === 'cargando');
 }
 
 export function estaCargando(state: AuthState): boolean {

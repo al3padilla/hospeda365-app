@@ -61,8 +61,7 @@ export default function FormularioRegistro() {
     setErrores(nuevosErrores);
     if (!sinErrores(nuevosErrores)) return;
 
-    const ok = await registrar(datos);
-    if (ok) router.replace("/perfil");
+    await registrar(datos);
   }
 
   const nivel = fuerzaPassword(datos.password);
@@ -145,7 +144,7 @@ export default function FormularioRegistro() {
             autoCapitalize="none"
             autoComplete="new-password"
             textContentType="newPassword"
-            placeholder="Mínimo 8 caracteres"
+            placeholder="Mínimo 12, con mayúscula, minúscula y número"
             value={datos.password}
             onChangeText={(v) => actualizar("password", v)}
             error={errores.password}

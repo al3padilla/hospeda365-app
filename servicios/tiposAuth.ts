@@ -57,6 +57,8 @@ export const MENSAJES_ERROR: Record<CodigoErrorAuth, string> = {
 
 /** Contrato común para cualquier proveedor de autenticación (mock, Firebase, API). */
 export type ServicioAuth = {
+  /** Firebase token/session changes. Mock providers may omit this hook. */
+  observarCambiosSesion?: (listener: () => void) => () => void;
   /** Lanza `ErrorAuth` si las credenciales no son válidas. */
   login(credenciales: Credenciales): Promise<Sesion>;
 
