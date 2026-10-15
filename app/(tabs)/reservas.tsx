@@ -1,9 +1,23 @@
-import { View, Text } from "react-native";
+import { useEffect, useState } from "react";
+import HistorialReservas from "../../components/HistorialReservas";
+import { PageLoader } from "../../components/Loader";
+import PageShell from "../../components/PageShell";
+import { esperar } from "../../datos/carga";
 
 export default function Reservas() {
+  const [listo, setListo] = useState(false);
+
+  useEffect(() => {
+    let activo = true;
+    void esperar().then(() => activo && setListo(true));
+    return () => {
+      activo = false;
+    };
+  }, []);
+
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>Mis reservas - Hospeda365</Text>
-    </View>
+    <PageShell>
+      {listo ? <HistorialReservas /> : <PageLoader titulo="Cargando tus reservas…" />}
+    </PageShell>
   );
 }

@@ -1,25 +1,42 @@
 import { Stack } from "expo-router";
-import { ActivityIndicator, View } from 'react-native';
-import { AuthProvider, useAuth } from '../contexts/authContext';
+import { useFonts } from "expo-font";
+import { StatusBar } from "expo-status-bar";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { COLORES } from "../constants/colors";
+import { ARCHIVOS_FUENTES } from "../constants/fuentes";
+import Proveedores from "../contexto/Proveedores";
+import { useAuth } from '../contexto/AuthContext';
+import { PageLoader } from '../components/Loader';
 
 export default function RootLayout() {
-  return <AuthProvider><Navigation /></AuthProvider>;
+  const [fuentesListas, errorFuentes] = useFonts(ARCHIVOS_FUENTES);
+
+  // Si las fuentes fallan, la app sigue con la tipografía del sistema.
+  if (!fuentesListas && !errorFuentes) return null;
+
+  return (
+    <SafeAreaProvider>
+      <Proveedores>
+        <StatusBar style="dark" />
+        <Navigation />
+      </Proveedores>
+    </SafeAreaProvider>
+  );
 }
 
 function Navigation() {
-  const { user, loading } = useAuth();
-  if (loading) return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5F8F8' }}><ActivityIndicator size="large" color="#007D7D" accessibilityLabel="Cargando sesión" /></View>;
-  return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Protected guard={!user}>
-        <Stack.Screen name="login" />
-        <Stack.Screen name="registro" />
-      </Stack.Protected>
-      <Stack.Protected guard={!!user}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="habitaciones/[id]" />
-      </Stack.Protected>
-    </Stack>
-  );
+  const { state, estaAutenticado } = useAuth();
+  if (state.estado === 'inicializando') return <PageLoader titulo="Verificando tu sesión…" />;
+  return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: COLORES.background } }}>
+    <Stack.Screen name="index" />
+    <Stack.Protected guard={!estaAutenticado}>
+      <Stack.Screen name="login" />
+      <Stack.Screen name="registro" />
+    </Stack.Protected>
+    <Stack.Protected guard={estaAutenticado}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="confirmacion" />
+      <Stack.Screen name="habitaciones/[id]" />
+    </Stack.Protected>
+  </Stack>;
 }

@@ -1,5 +1,10 @@
-import AuthScreen from '../components/authScreen';
+import FormularioRegistro from "../components/FormularioRegistro";
+import PageShell from "../components/PageShell";
 
 export default function Registro() {
-  return <AuthScreen register />;
+  return (
+    <PageShell whatsapp={false} mostrarAtras>
+      <FormularioRegistro />
+    </PageShell>
+  );
 }

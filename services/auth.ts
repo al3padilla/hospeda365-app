@@ -8,7 +8,7 @@ import { type AuthValues, normalizeName, validateAuth } from '../utils/authValid
 
 // Only a single document is addressed by the authenticated UID. No user lookup
 // by email, dynamic query text, password storage, or client-selected admin role.
-async function ensureProfile(user: User, name: string, surname: string) {
+async function ensureProfile(user: User, name: string, surname: string, phone?: string) {
   const { db } = getFirebase();
   const ref = doc(db, 'users', user.uid);
   const snapshot = await getDoc(ref);
@@ -23,6 +23,7 @@ async function ensureProfile(user: User, name: string, surname: string) {
       rol: 'huesped',
       activo: true,
       createdAt: serverTimestamp(),
+      ...(phone ? { telefono: phone.trim() } : {}),
     });
   }
 }
@@ -41,7 +42,7 @@ export async function authenticate(values: AuthValues, register: boolean) {
     const surname = register ? normalizeName(values.surname) : '';
     if (register) await updateProfile(credential.user, { displayName: `${name} ${surname}` });
     // A login also repairs a missing profile after a previous partial failure.
-    await ensureProfile(credential.user, name, surname);
+    await ensureProfile(credential.user, name, surname, register ? values.phone : undefined);
     return credential.user;
   } catch (error) {
     if (auth.currentUser) await signOut(auth);

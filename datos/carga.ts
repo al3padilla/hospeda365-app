@@ -1,0 +1,11 @@
+/** Delays simulados para que los estados de carga sean visibles. */
+export const DELAYS = {
+  ruta: 900,
+  busqueda: 1200,
+  subida: 1100,
+  confirmar: 1400,
+} as const;
+
+export function esperar(ms: number = DELAYS.ruta): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

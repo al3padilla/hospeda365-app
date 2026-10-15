@@ -39,6 +39,7 @@ test('server rejects forged roles, extra fields, wrong UID/email, unsafe names a
     { rol: 'admin' }, { activo: false }, { password: 'NeverStoreThis123!' }, { uid: 'someone-else' },
     { email: 'someone@example.com' }, { nombre: '<script>test</script>' },
     { nombre: 'A'.repeat(101) }, { nombre: 'Ana\nPerez' }, { nombre: 'Ab' }, { apellido: '<script>x</script>' }, { createdAt: new Date(0) },
+    { telefono: '<script>x</script>' }, { telefono: 71234567 }, { telefono: '7'.repeat(100) },
   ];
   for (const [index, changes] of invalid.entries()) {
     const uid = `invalid-${index}`;
@@ -61,6 +62,8 @@ test('guests may edit names but cannot inject fields or reactivate accounts', as
   await assertSucceeds(updateDoc(doc(dbFor(), 'users/alice'), { nombre: 'Ana María' }));
   await assertFails(updateDoc(doc(dbFor(), 'users/alice'), { nombre: '<script>x</script>' }));
   await assertFails(updateDoc(doc(dbFor(), 'users/alice'), { isAdmin: true }));
+  await assertSucceeds(updateDoc(doc(dbFor(), 'users/alice'), { telefono: '+503 7123 4567' }));
+  await assertFails(updateDoc(doc(dbFor(), 'users/alice'), { telefono: '<script>x</script>' }));
   await env.withSecurityRulesDisabled(async (context) => {
     await setDoc(doc(context.firestore(), 'users/inactive'), { ...profile('inactive'), activo: false });
     await setDoc(doc(context.firestore(), 'users/admin'), { ...profile('admin'), rol: 'admin' });

@@ -4,11 +4,13 @@ export type AuthValues = {
   email: string;
   password: string;
   confirmation: string;
+  phone?: string;
 };
 
 export type AuthErrors = Partial<Record<keyof AuthValues, string>>;
 
-export const AUTH_LIMITS = { name: 100, email: 254, password: 128 } as const;
+export const AUTH_LIMITS = { name: 100, email: 254, password: 128, phone: 20 } as const;
+export const validPhone = (value: string) => value.length <= AUTH_LIMITS.phone && /^(\+?503[ -]?)?[267]\d{3}[ -]?\d{4}$/.test(value);
 export const normalizeName = (value: string) => value.normalize('NFC').trim().replace(/ +/g, ' ');
 const controlCharacters = /[\u0000-\u001F\u007F]/;
 
@@ -24,6 +26,7 @@ export function validateAuth(values: AuthValues, register: boolean): AuthErrors 
     errors.password = 'Usa como máximo 128 caracteres y evita caracteres de control.';
 
   if (register) {
+    if (values.phone !== undefined && !validPhone(values.phone.trim())) errors.phone = 'Ingresa un teléfono válido (ej. 7123 4567).';
     const name = normalizeName(values.name);
     if (!name) errors.name = 'Ingresa tu nombre completo.';
     else if (name.length < 3 || name.length > AUTH_LIMITS.name || !/^[\p{L}\p{M}]+(?:[ '\u2019-][\p{L}\p{M}]+)*$/u.test(name))

@@ -1,5 +1,10 @@
-import AuthScreen from '../components/authScreen';
+import FormularioLogin from "../components/FormularioLogin";
+import PageShell from "../components/PageShell";
 
 export default function Login() {
-  return <AuthScreen />;
+  return (
+    <PageShell whatsapp={false} mostrarAtras>
+      <FormularioLogin />
+    </PageShell>
+  );
 }

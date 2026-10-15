@@ -74,12 +74,19 @@ service cloud.firestore {
       function camposValidos() {
         let datos = request.resource.data;
         return datos.keys().hasAll(['email', 'nombre', 'apellido', 'rol', 'activo'])
-          && datos.keys().hasOnly(['email', 'nombre', 'apellido', 'rol', 'activo', 'uid', 'createdAt'])
+          && datos.keys().hasOnly(['email', 'nombre', 'apellido', 'rol', 'activo', 'uid', 'createdAt', 'telefono'])
           && nombreValido(datos.nombre, 3)
           && nombreValido(datos.apellido, 0)
           && datos.email is string && datos.email.size() <= 254
           && (!('uid' in datos) || datos.uid == userId)
-          && (!('createdAt' in datos) || datos.createdAt == request.time);
+          && (!('createdAt' in datos) || datos.createdAt == request.time)
+          && telefonoValido(datos);
+      }
+
+      function telefonoValido(datos) {
+        return !('telefono' in datos) || datos.telefono == null
+          || (datos.telefono is string && datos.telefono.size() <= 20
+            && datos.telefono.matches("^(\\+?503[ -]?)?[267][0-9]{3}[ -]?[0-9]{4}$"));
       }
 
       // Registro: sólo puedes crear TU propio perfil, y siempre como
@@ -98,9 +105,10 @@ service cloud.firestore {
       // Sólo un admin puede cambiar esos tres campos.
       allow update: if activo() && (
                       (esDueno(userId)
-                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nombre', 'apellido'])
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nombre', 'apellido', 'telefono'])
                         && nombreValido(request.resource.data.nombre, 3)
-                        && nombreValido(request.resource.data.apellido, 0))
+                        && nombreValido(request.resource.data.apellido, 0)
+                        && telefonoValido(request.resource.data))
                       || esAdmin()
                     );
 
