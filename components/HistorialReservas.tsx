@@ -13,9 +13,15 @@ import Rejilla from "./ui/Rejilla";
 import Texto from "./ui/Texto";
 import { estilosHistorialReservas as styles } from "../estilos/reservas";
 
-function ReservaCard({ reserva, onAbrir }: { reserva: ReservaHistorial; onAbrir: () => void }) {
-  const { esSm } = useResponsive();
-
+function ReservaCard({
+  reserva,
+  onAbrir,
+  horizontal,
+}: {
+  reserva: ReservaHistorial;
+  onAbrir: () => void;
+  horizontal: boolean;
+}) {
   return (
     <Pressable
       onPress={onAbrir}
@@ -23,14 +29,14 @@ function ReservaCard({ reserva, onAbrir }: { reserva: ReservaHistorial; onAbrir:
       accessibilityLabel={`Ver detalle de reserva Habitación ${reserva.habitacionNombre}`}
       style={({ pressed }) => [
         styles.tarjeta,
-        esSm && { flexDirection: "row" },
+        horizontal && styles.tarjetaFila,
         pressed && { borderColor: conAlfa(COLORES.sea, 0.25) },
       ]}
     >
       <Image
         source={reserva.imagen}
         resizeMode="cover"
-        style={esSm ? { width: 160, minHeight: 150 } : { width: "100%", height: 144 }}
+        style={horizontal ? styles.fotoFila : styles.foto}
       />
 
       <View style={styles.cuerpo}>
@@ -70,9 +76,13 @@ function ReservaCard({ reserva, onAbrir }: { reserva: ReservaHistorial; onAbrir:
 }
 
 export default function HistorialReservas() {
-  const { columnas } = useResponsive();
+  const { esLg, columnas } = useResponsive();
   const reservas = RESERVAS_HISTORIAL;
   const [seleccionada, setSeleccionada] = useState<ReservaHistorial | null>(null);
+
+  // Tablet: 2 columnas en vertical. Escritorio (lg+): tarjetas en fila.
+  const cols = columnas({ base: 1, md: 2 });
+  const horizontal = esLg;
 
   return (
     <View style={styles.seccion}>
@@ -91,9 +101,14 @@ export default function HistorialReservas() {
           </Texto>
         </View>
       ) : (
-        <Rejilla columnas={columnas({ base: 1, lg: 2 })} separacion={20}>
+        <Rejilla columnas={cols} separacion={20}>
           {reservas.map((reserva) => (
-            <ReservaCard key={reserva.id} reserva={reserva} onAbrir={() => setSeleccionada(reserva)} />
+            <ReservaCard
+              key={reserva.id}
+              reserva={reserva}
+              horizontal={horizontal}
+              onAbrir={() => setSeleccionada(reserva)}
+            />
           ))}
         </Rejilla>
       )}
