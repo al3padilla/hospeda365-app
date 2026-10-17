@@ -84,8 +84,13 @@ export const estilosHistorialReservas = StyleSheet.create({
     borderWidth: 1,
     borderColor: conAlfa(COLORES.sea, 0.1),
     backgroundColor: COLORES.foam,
+    height: "100%",
   },
-  cuerpo: { flex: 1, gap: 12, padding: 16 },
+  tarjetaFila: { flexDirection: "row", alignItems: "center", minHeight: 148 },
+  foto: { width: "100%", height: 160 },
+  /** Tamaño fijo: evita que fotos portrait estiren la card en tablet/web. */
+  fotoFila: { width: 160, height: 148 },
+  cuerpo: { flex: 1, gap: 10, padding: 16, justifyContent: "space-between" },
   cabecera: { flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: 8 },
   pie: { marginTop: "auto", flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 12, paddingTop: 4 },
   vacio: {

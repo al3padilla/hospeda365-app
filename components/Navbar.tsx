@@ -7,20 +7,24 @@ import { useNavegacionHotel, type SeccionInicio } from "../hooks/useNavegacionHo
 import { useResponsive } from "../hooks/useResponsive";
 import Logo from "./Logo";
 import Boton from "./ui/Boton";
-import Icono from "./ui/Icono";
+import Icono, { type NombreIcono } from "./ui/Icono";
 import Texto from "./ui/Texto";
 import { estilosNavbar as styles } from "../estilos/layout";
 
-type Enlace =
-  | { label: string; seccion: SeccionInicio }
-  | { label: string; ruta: "/habitaciones" | "/reservas" };
-
-const NAV_LINKS: Enlace[] = [
-  { label: "Inicio", seccion: "inicio" },
-  { label: "Habitaciones", ruta: "/habitaciones" },
-  { label: "Amenidades", seccion: "amenidades" },
-  { label: "Day Pass", seccion: "daypass" },
-  { label: "Mis reservas", ruta: "/reservas" },
+/** Solo secundarios: lo principal vive en el tab bar; sesión en Mi cuenta. */
+const MENU_SECUNDARIO: { label: string; seccion: SeccionInicio; icono: NombreIcono; descripcion: string }[] = [
+  {
+    label: "Amenidades",
+    seccion: "amenidades",
+    icono: "olas",
+    descripcion: "Piscina, spa y más",
+  },
+  {
+    label: "Day Pass",
+    seccion: "daypass",
+    icono: "sol",
+    descripcion: "Disfruta el hotel por el día",
+  },
 ];
 
 type NavbarProps = {
@@ -32,17 +36,12 @@ export default function Navbar({ mostrarAtras = false }: NavbarProps) {
   const insets = useSafeAreaInsets();
   const { esMd } = useResponsive();
   const { router, irASeccion } = useNavegacionHotel();
+  const { estaAutenticado, state } = useAuth();
   const [abierto, setAbierto] = useState(false);
 
-  function abrirEnlace(enlace: Enlace) {
+  function irSeccion(seccion: SeccionInicio) {
     setAbierto(false);
-    if ("seccion" in enlace) irASeccion(enlace.seccion);
-    else router.navigate(enlace.ruta);
-  }
-
-  function reservarAhora() {
-    setAbierto(false);
-    irASeccion("buscar");
+    irASeccion(seccion);
   }
 
   return (
@@ -61,7 +60,7 @@ export default function Navbar({ mostrarAtras = false }: NavbarProps) {
             </Pressable>
           ) : null}
           <Pressable
-            onPress={() => irASeccion("inicio")}
+            onPress={() => irSeccion("inicio")}
             accessibilityRole="link"
             accessibilityLabel="Ir al inicio"
           >
@@ -69,145 +68,72 @@ export default function Navbar({ mostrarAtras = false }: NavbarProps) {
           </Pressable>
         </View>
 
-        {esMd ? (
-          <View style={styles.enlacesEscritorio}>
-            {NAV_LINKS.map((enlace) => (
-              <Pressable key={enlace.label} onPress={() => abrirEnlace(enlace)} hitSlop={6}>
-                <Texto color={COLORES.sea} tamano={14}>
-                  {enlace.label}
-                </Texto>
-              </Pressable>
-            ))}
-            <Boton texto="RESERVA AHORA" tamano="sm" mayusculas onPress={reservarAhora} />
-            <NavbarAuth />
-          </View>
-        ) : (
-          <Pressable
-            onPress={() => setAbierto((v) => !v)}
-            accessibilityRole="button"
-            accessibilityLabel={abierto ? "Cerrar menú" : "Abrir menú"}
-            accessibilityState={{ expanded: abierto }}
-            style={styles.botonMenu}
-          >
-            <Icono nombre={abierto ? "cerrar" : "menu"} tamano={22} color={COLORES.foam} />
-          </Pressable>
-        )}
+        <Pressable
+          onPress={() => setAbierto((v) => !v)}
+          accessibilityRole="button"
+          accessibilityLabel={abierto ? "Cerrar menú" : "Abrir menú"}
+          accessibilityState={{ expanded: abierto }}
+          style={styles.botonMenu}
+        >
+          <Icono nombre={abierto ? "cerrar" : "menu"} tamano={22} color={COLORES.foam} />
+        </Pressable>
       </View>
 
-      {abierto && !esMd ? (
-        <View style={styles.menuMovil}>
-          {NAV_LINKS.map((enlace) => (
-            <Pressable
-              key={enlace.label}
-              onPress={() => abrirEnlace(enlace)}
-              style={styles.enlaceMovil}
-            >
-              <Texto color={COLORES.sea} tamano={16}>
-                {enlace.label}
-              </Texto>
-            </Pressable>
-          ))}
-          <Boton texto="RESERVA AHORA" mayusculas onPress={reservarAhora} />
-          <NavbarAuthMovil onNavegar={() => setAbierto(false)} />
+      {abierto ? (
+        <View style={styles.menuPanel}>
+          <View style={styles.menuContenido}>
+            <Texto color={COLORES.mist} tamano={12} peso="semi" style={styles.menuEtiqueta}>
+              Explorar
+            </Texto>
+
+            <View style={styles.menuLista}>
+              {MENU_SECUNDARIO.map((enlace) => (
+                <Pressable
+                  key={enlace.label}
+                  onPress={() => irSeccion(enlace.seccion)}
+                  accessibilityRole="button"
+                  accessibilityLabel={enlace.label}
+                  style={({ pressed }) => [styles.menuItem, pressed && styles.menuItemPressed]}
+                >
+                  <View style={styles.menuIcono}>
+                    <Icono nombre={enlace.icono} tamano={20} color={COLORES.coral} />
+                  </View>
+                  <View style={styles.menuTexto}>
+                    <Texto peso="semi" color={COLORES.sea} tamano={16}>
+                      {enlace.label}
+                    </Texto>
+                    <Texto color={COLORES.mist} tamano={12}>
+                      {enlace.descripcion}
+                    </Texto>
+                  </View>
+                  <Icono nombre="chevronDer" tamano={18} color={COLORES.mist} />
+                </Pressable>
+              ))}
+            </View>
+
+            <Boton
+              texto="RESERVA AHORA"
+              icono="calendarioCheck"
+              mayusculas
+              onPress={() => irSeccion("buscar")}
+            />
+
+            {state.estado === "inicializando" ? (
+              <View style={[styles.placeholder, { width: "100%", height: 44 }]} />
+            ) : !estaAutenticado ? (
+              <Boton
+                texto="Iniciar sesión"
+                icono="entrar"
+                variante="borde"
+                onPress={() => {
+                  setAbierto(false);
+                  router.push("/login");
+                }}
+              />
+            ) : null}
+          </View>
         </View>
       ) : null}
-    </View>
-  );
-}
-
-/** Versión de escritorio/tablet: chip con iniciales. */
-function NavbarAuth() {
-  const { estaAutenticado, usuario, iniciales, state } = useAuth();
-  const { router } = useNavegacionHotel();
-
-  if (state.estado === "inicializando") {
-    return <View style={styles.placeholder} />;
-  }
-
-  if (!estaAutenticado || !usuario) {
-    return (
-      <Boton texto="Iniciar sesión" variante="borde" tamano="sm" onPress={() => router.push("/login")} />
-    );
-  }
-
-  return (
-    <Pressable
-      onPress={() => router.navigate("/perfil")}
-      style={styles.chipUsuario}
-      accessibilityRole="button"
-      accessibilityLabel="Mi cuenta"
-    >
-      <View style={styles.avatarChico}>
-        <Texto peso="bold" color={COLORES.foam} tamano={11}>
-          {iniciales}
-        </Texto>
-      </View>
-      <Texto color={COLORES.sea} tamano={14} numberOfLines={1} style={styles.nombreUsuario}>
-        {usuario.nombre}
-      </Texto>
-    </Pressable>
-  );
-}
-
-/** Versión para el menú móvil: todo a la vista. */
-function NavbarAuthMovil({ onNavegar }: { onNavegar: () => void }) {
-  const { estaAutenticado, usuario, nombreCompleto, iniciales, logout, state } = useAuth();
-  const { router } = useNavegacionHotel();
-
-  if (state.estado === "inicializando") {
-    return <View style={[styles.placeholder, { width: "100%", height: 40 }]} />;
-  }
-
-  if (!estaAutenticado || !usuario) {
-    return (
-      <Boton
-        texto="Iniciar sesión"
-        variante="borde"
-        onPress={() => {
-          onNavegar();
-          router.push("/login");
-        }}
-      />
-    );
-  }
-
-  return (
-    <View style={styles.bloqueUsuario}>
-      <View style={styles.filaUsuario}>
-        <View style={styles.avatar}>
-          <Texto peso="bold" color={COLORES.foam} tamano={12}>
-            {iniciales}
-          </Texto>
-        </View>
-        <View style={styles.datosUsuario}>
-          <Texto peso="semi" color={COLORES.sea} tamano={14} numberOfLines={1}>
-            {nombreCompleto}
-          </Texto>
-          <Texto color={COLORES.mist} tamano={12} numberOfLines={1}>
-            {usuario.email}
-          </Texto>
-        </View>
-      </View>
-      <Boton
-        texto="Mi cuenta"
-        variante="borde"
-        tamano="sm"
-        onPress={() => {
-          onNavegar();
-          router.navigate("/perfil");
-        }}
-      />
-      <Pressable
-        onPress={() => {
-          onNavegar();
-          void logout();
-        }}
-        style={styles.botonCerrarSesion}
-      >
-        <Texto color={COLORES.mist} tamano={14}>
-          Cerrar sesión
-        </Texto>
-      </Pressable>
     </View>
   );
 }
