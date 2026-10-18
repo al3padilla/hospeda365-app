@@ -97,10 +97,6 @@ npx expo start --web
 
 ## 👥 Equipo de Desarrollo
 
-### Hospeda365
-
-Proyecto académico enfocado en el desarrollo de soluciones tecnológicas para la administración hotelera.
-
 Integrantes:
 
 - Alexander Ulises Elías Vásquez | EV210855 
