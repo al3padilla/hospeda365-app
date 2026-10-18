@@ -167,7 +167,7 @@ La aplicación sigue una arquitectura basada en componentes reutilizables que pe
 
 ### Pantalla de Inicio
 
-<img width="600" height="350" alt="IMG-20261016-WA0085" src="https://github.com/user-attachments/assets/453bd38e-200d-41dc-8838-e86fa4dad328" />
+<img width="350" height="600" alt="IMG-20261016-WA0085" src="https://github.com/user-attachments/assets/453bd38e-200d-41dc-8838-e86fa4dad328" />
 
 ### Inicio de Sesión
 
