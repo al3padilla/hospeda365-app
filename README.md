@@ -14,16 +14,6 @@ El proyecto fue desarrollado utilizando React Native y Expo, permitiendo mantene
 
 ---
 
-## 🎯 Objetivos
-
-- Facilitar la gestión hotelera desde dispositivos móviles.
-- Mejorar la experiencia de usuario mediante una interfaz intuitiva.
-- Mantener una arquitectura escalable y reutilizable.
-- Garantizar compatibilidad multiplataforma.
-- Integrar los procesos principales del sistema Hospeda365 en una aplicación móvil.
-
----
-
 ## 🚀 Tecnologías Utilizadas
 
 ### Frontend Móvil
@@ -32,15 +22,6 @@ El proyecto fue desarrollado utilizando React Native y Expo, permitiendo mantene
 - Expo
 - TypeScript
 - JavaScript ES6+
-
-### Herramientas de Diseño
-
-- Figma
-
-### Control de Versiones
-
-- Git
-- GitHub
 
 ---
 
@@ -111,75 +92,6 @@ npx expo start --ios
 ```bash
 npx expo start --web
 ```
-
----
-
-## ✨ Características
-
-- Interfaz moderna y responsiva.
-- Navegación entre pantallas.
-- Componentes reutilizables.
-- Arquitectura escalable.
-- Diseño basado en mockups de Figma.
-- Compatibilidad con Android e iOS.
-- Desarrollo multiplataforma mediante React Native.
-
----
-
-## 🎨 Diseño UX/UI
-
-El diseño de la aplicación fue elaborado previamente en Figma utilizando principios de:
-
-- Consistencia visual.
-- Accesibilidad.
-- Diseño centrado en el usuario.
-- Navegación intuitiva.
-- Responsividad para dispositivos móviles.
-
-Los mockups permitieron validar la experiencia de usuario antes de iniciar el proceso de desarrollo.
-
----
-
-## 🏗️ Arquitectura
-
-La aplicación sigue una arquitectura basada en componentes reutilizables que permite:
-
-- Mayor mantenibilidad.
-- Escalabilidad futura.
-- Separación de responsabilidades.
-- Reutilización de código.
-- Mejor organización del proyecto.
-
----
-
-## 🔐 Buenas Prácticas Implementadas
-
-- Uso de TypeScript para tipado estático.
-- Componentización de interfaces.
-- Organización modular del código.
-- Control de versiones mediante Git.
-- Diseño multiplataforma.
-- Estructura preparada para crecimiento futuro.
-
----
-
-## 📸 Capturas del Proyecto
-
-### Pantalla de Inicio
-
-<img width="350" height="650" alt="IMG-20261016-WA0085" src="https://github.com/user-attachments/assets/453bd38e-200d-41dc-8838-e86fa4dad328" />
-
-### Inicio de Sesión
-
-<img width="350" height="650" alt="Screenshot_2026-10-16-23-14-45-552_com android chrome-edit" src="https://github.com/user-attachments/assets/19d0c173-6bb5-423e-93b8-d9ee087a2f9b" />
-
-### Dashboard Principal
-
-<img width="350" height="650" alt="Screenshot_2026-10-16-23-16-18-351_com android chrome-edit" src="https://github.com/user-attachments/assets/7c9575b4-2329-4fe8-803a-c9f2acaac5f9" />
-
-### Gestión de Reservas
-
-<img width="350" height="650" alt="Screenshot_2026-10-16-23-35-34-609_com android chrome-edit" src="https://github.com/user-attachments/assets/83d95f2e-b923-4040-ae1b-efba65d2cb22" />
 
 ---
 
