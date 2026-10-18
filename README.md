@@ -10,7 +10,7 @@ La aplicación permite a usuarios y administradores acceder a funcionalidades ho
 
 Hospeda365 App es la versión móvil del sistema Hospeda365, diseñada para ofrecer una experiencia de usuario moderna y accesible desde dispositivos Android e iOS.
 
-El proyecto fue desarrollado utilizando React Native y Expo, permitiendo mantener una única base de código para múltiples plataformas. 【1-347f2e】
+El proyecto fue desarrollado utilizando React Native y Expo, permitiendo mantener una única base de código para múltiples plataformas.
 
 ---
 
@@ -201,6 +201,6 @@ Integrantes:
 
 ## 📄 Licencia
 
-Este proyecto se encuentra bajo la licencia MIT. 【1-347f2e】
+Este proyecto se encuentra bajo la licencia MIT.
 
 ---
