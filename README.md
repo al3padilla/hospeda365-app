@@ -167,19 +167,19 @@ La aplicación sigue una arquitectura basada en componentes reutilizables que pe
 
 ### Pantalla de Inicio
 
-Agregar captura aquí.
+<img width="755" height="1600" alt="IMG-20261016-WA0085" src="https://github.com/user-attachments/assets/453bd38e-200d-41dc-8838-e86fa4dad328" />
 
 ### Inicio de Sesión
 
-Agregar captura aquí.
+<img width="1080" height="1707" alt="Screenshot_2026-10-16-23-14-45-552_com android chrome-edit" src="https://github.com/user-attachments/assets/19d0c173-6bb5-423e-93b8-d9ee087a2f9b" />
 
 ### Dashboard Principal
 
-Agregar captura aquí.
+<img width="1080" height="2135" alt="Screenshot_2026-10-16-23-16-18-351_com android chrome-edit" src="https://github.com/user-attachments/assets/7c9575b4-2329-4fe8-803a-c9f2acaac5f9" />
 
 ### Gestión de Reservas
 
-Agregar captura aquí.
+<img width="1080" height="2139" alt="Screenshot_2026-10-16-23-35-34-609_com android chrome-edit" src="https://github.com/user-attachments/assets/83d95f2e-b923-4040-ae1b-efba65d2cb22" />
 
 ---
 
