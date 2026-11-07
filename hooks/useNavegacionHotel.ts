@@ -8,6 +8,7 @@ export type SeccionInicio =
   | "sobre"
   | "amenidades"
   | "daypass"
+  | "ubicacion"
   | "habitaciones";
 
 export function useNavegacionHotel() {
@@ -15,6 +16,11 @@ export function useNavegacionHotel() {
 
   const irASeccion = useCallback(
     (seccion: SeccionInicio) => {
+      // Habitaciones / reservar → tab Habitaciones.
+      if (seccion === "habitaciones" || seccion === "buscar") {
+        router.navigate("/(tabs)/habitaciones");
+        return;
+      }
       // `t` fuerza el scroll aunque se pida la misma sección dos veces.
       router.navigate({ pathname: "/", params: { seccion, t: String(Date.now()) } });
     },

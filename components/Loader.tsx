@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
-import { ActivityIndicator, Animated, View } from "react-native";
+import { ActivityIndicator, Animated, Platform, View } from "react-native";
 import { COLORES, conAlfa } from "../constants/colors";
 import Texto from "./ui/Texto";
-import { estilosLoader as styles } from "../estilos/layout";
+import { estilosLoader as styles } from "../estilos/feedback";
 
 export function Spinner({
   color = COLORES.coral,
@@ -32,8 +32,8 @@ function PuntoPulso({ retraso, opacidad }: { retraso: number; opacidad: number }
     const animacion = Animated.loop(
       Animated.sequence([
         Animated.delay(retraso),
-        Animated.timing(valor, { toValue: 1, duration: 500, useNativeDriver: true }),
-        Animated.timing(valor, { toValue: 0.3, duration: 500, useNativeDriver: true }),
+        Animated.timing(valor, { toValue: 1, duration: 500, useNativeDriver: Platform.OS !== "web" }),
+        Animated.timing(valor, { toValue: 0.3, duration: 500, useNativeDriver: Platform.OS !== "web" }),
       ]),
     );
     animacion.start();
@@ -82,8 +82,8 @@ function Skeleton({ style }: { style: object }) {
   useEffect(() => {
     const animacion = Animated.loop(
       Animated.sequence([
-        Animated.timing(valor, { toValue: 1, duration: 700, useNativeDriver: true }),
-        Animated.timing(valor, { toValue: 0.5, duration: 700, useNativeDriver: true }),
+        Animated.timing(valor, { toValue: 1, duration: 700, useNativeDriver: Platform.OS !== "web" }),
+        Animated.timing(valor, { toValue: 0.5, duration: 700, useNativeDriver: Platform.OS !== "web" }),
       ]),
     );
     animacion.start();
@@ -108,6 +108,26 @@ export function SkeletonCard() {
         <View style={styles.skeletonPie}>
           <Skeleton style={styles.skeletonPrecio} />
           <Skeleton style={styles.skeletonBoton} />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+/** Skeleton de tarjeta de reserva (historial / Mis reservas). */
+export function SkeletonReserva() {
+  return (
+    <View style={styles.skeletonReserva} accessibilityLabel="Cargando reserva">
+      <Skeleton style={styles.skeletonReservaFoto} />
+      <View style={styles.skeletonReservaCuerpo}>
+        <View style={styles.skeletonReservaCabecera}>
+          <Skeleton style={styles.skeletonReservaTitulo} />
+          <Skeleton style={styles.skeletonReservaBadge} />
+        </View>
+        <Skeleton style={styles.skeletonReservaFecha} />
+        <View style={styles.skeletonReservaPie}>
+          <Skeleton style={styles.skeletonReservaLink} />
+          <Skeleton style={styles.skeletonReservaTotal} />
         </View>
       </View>
     </View>

@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { Image, Pressable, View } from "react-native";
+import { useRouter } from "expo-router";
 import { COLORES, conAlfa } from "../constants/colors";
+import { useReservas } from "../contexto/ReservasContext";
 import { formatearFecha } from "../datos/fechas";
-import { RESERVAS_HISTORIAL, type ReservaHistorial } from "../datos/historialReservas";
+import type { ReservaHistorial } from "../datos/historialReservas";
 import { formatearPrecio } from "../datos/reserva";
 import { useResponsive } from "../hooks/useResponsive";
 import BadgeEstado from "./BadgeEstado";
+import { EstadoError, EstadoVacio } from "./EstadoVista";
+import { SkeletonReserva } from "./Loader";
 import ReservaHistorialModal from "./ReservaHistorialModal";
 import EncabezadoSeccion from "./ui/EncabezadoSeccion";
 import Icono from "./ui/Icono";
@@ -76,11 +80,11 @@ function ReservaCard({
 }
 
 export default function HistorialReservas() {
+  const router = useRouter();
   const { esLg, columnas } = useResponsive();
-  const reservas = RESERVAS_HISTORIAL;
+  const { reservas, cargando, error, reintentar } = useReservas();
   const [seleccionada, setSeleccionada] = useState<ReservaHistorial | null>(null);
 
-  // Tablet: 2 columnas en vertical. Escritorio (lg+): tarjetas en fila.
   const cols = columnas({ base: 1, md: 2 });
   const horizontal = esLg;
 
@@ -90,16 +94,26 @@ export default function HistorialReservas() {
         script="Tus viajes"
         titulo="Historial de reservas"
         icono={<Icono nombre="historial" tamano={34} color={COLORES.coral} />}
-        descripcion="Consulta tus estancias pasadas y próximas. Los estados se actualizan cuando el hotel confirma o cancela tu solicitud."
+        descripcion="Consulta tus estancias pasadas y próximas. Desliza hacia abajo para actualizar."
         style={styles.encabezado}
       />
 
-      {reservas.length === 0 ? (
-        <View style={styles.vacio}>
-          <Texto color={COLORES.mist} tamano={15} style={styles.textoVacio}>
-            Aún no tienes reservas registradas.
-          </Texto>
+      {cargando ? (
+        <View accessibilityLabel="Cargando historial de reservas" style={{ gap: 20 }}>
+          {Array.from({ length: 3 }, (_, i) => (
+            <SkeletonReserva key={i} />
+          ))}
         </View>
+      ) : error ? (
+        <EstadoError mensaje={error} onReintentar={() => void reintentar()} />
+      ) : reservas.length === 0 ? (
+        <EstadoVacio
+          icono="calendarioReloj"
+          titulo="Sin reservas aún"
+          descripcion="Cuando reserves una habitación, aparecerá aquí con su estado en tiempo real."
+          accionTexto="Explorar habitaciones"
+          onAccion={() => router.push("/(tabs)/habitaciones")}
+        />
       ) : (
         <Rejilla columnas={cols} separacion={20}>
           {reservas.map((reserva) => (

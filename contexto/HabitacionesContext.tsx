@@ -29,7 +29,7 @@ type HabitacionesContextValue = {
   busqueda: CriteriosBusqueda | null;
   cargando: boolean;
   setHabitaciones: (habitaciones: Habitacion[]) => void;
-  buscar: (criterios: CriteriosBusqueda) => void;
+  buscar: (criterios: CriteriosBusqueda) => Promise<Habitacion[]>;
   limpiarBusqueda: () => void;
 };
 
@@ -54,14 +54,19 @@ export function HabitacionesProvider({ children }: { children: ReactNode }) {
   );
 
   const buscar = useCallback(
-    (criterios: CriteriosBusqueda) => {
-      setCargando(true);
-      runAfter(DELAYS.busqueda, () => {
-        setBusqueda(criterios);
-        setCargando(false);
-      });
-    },
-    [runAfter],
+    (criterios: CriteriosBusqueda) =>
+      new Promise<Habitacion[]>((resolve) => {
+        setCargando(true);
+        runAfter(DELAYS.busqueda, () => {
+          setBusqueda(criterios);
+          setCargando(false);
+          const filtradas = habitaciones.filter(
+            (h) => h.capacity >= criterios.personas,
+          );
+          resolve(filtradas);
+        });
+      }),
+    [habitaciones, runAfter],
   );
 
   const limpiarBusqueda = useCallback(() => {

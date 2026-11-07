@@ -4,6 +4,8 @@ export const DELAYS = {
   busqueda: 1200,
   subida: 1100,
   confirmar: 1400,
+  /** Tras el toast de ?xito, antes de ir a Mis reservas. */
+  redirigir: 1600,
 } as const;
 
 export function esperar(ms: number = DELAYS.ruta): Promise<void> {

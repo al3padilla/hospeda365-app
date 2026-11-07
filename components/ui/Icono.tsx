@@ -77,6 +77,12 @@ const ICONOS = {
   escudo: ion("shield-checkmark-outline"),
   whatsapp: ion("logo-whatsapp"),
   flechaIzq: ion("arrow-back"),
+  flechaArriba: ion("arrow-up"),
+  refrescar: ion("refresh-outline"),
+  mascota: mci("paw"),
+  navegacion: ion("navigate-outline"),
+  maps: mci("google-maps"),
+  waze: mci("waze"),
 } as const;
 
 export type NombreIcono = keyof typeof ICONOS;

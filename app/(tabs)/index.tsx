@@ -1,13 +1,13 @@
 import { useEffect, useRef } from "react";
 import { ScrollView, View, type LayoutChangeEvent } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import Amenidades from "../../components/Amenidades";
 import DayPass from "../../components/DayPass";
-import HabitacionesDestacadas from "../../components/HabitacionesDestacadas";
 import HeroCarousel from "../../components/HeroCarousel";
 import PageShell from "../../components/PageShell";
 import SearchBar from "../../components/SearchBar";
 import SobreHotel from "../../components/SobreHotel";
+import UbicacionHotel from "../../components/UbicacionHotel";
 import type { SeccionInicio } from "../../hooks/useNavegacionHotel";
 import { estilosPantallaInicio as styles } from "../../estilos/inicio";
 
@@ -15,6 +15,7 @@ import { estilosPantallaInicio as styles } from "../../estilos/inicio";
 const MARGEN_SUPERIOR = 12;
 
 export default function Inicio() {
+  const router = useRouter();
   const { seccion, t } = useLocalSearchParams<{ seccion?: SeccionInicio; t?: string }>();
   const scrollRef = useRef<ScrollView>(null);
   const posiciones = useRef<Partial<Record<SeccionInicio, number>>>({ inicio: 0 });
@@ -25,24 +26,31 @@ export default function Inicio() {
     };
   }
 
+  function irAHabitaciones() {
+    router.navigate("/(tabs)/habitaciones");
+  }
+
   function irA(id: SeccionInicio) {
+    if (id === "habitaciones") {
+      irAHabitaciones();
+      return;
+    }
     const y = posiciones.current[id];
     if (y === undefined) return;
     scrollRef.current?.scrollTo({ y: Math.max(0, y - MARGEN_SUPERIOR), animated: true });
   }
 
   useEffect(() => {
-    if (!seccion) return;
-    // Espera un frame para que las secciones ya tengan su posición medida.
+    if (!seccion || seccion === "habitaciones") return;
     const id = setTimeout(() => irA(seccion), 60);
     return () => clearTimeout(id);
   }, [seccion, t]);
 
   return (
     <PageShell scrollRef={scrollRef}>
-      <HeroCarousel onReservar={() => irA("buscar")} onVerHabitaciones={() => irA("habitaciones")} />
+      <HeroCarousel onReservar={irAHabitaciones} onVerHabitaciones={irAHabitaciones} />
       <View onLayout={registrar("buscar")} style={styles.buscador}>
-        <SearchBar onBuscar={() => irA("habitaciones")} />
+        <SearchBar onBuscar={irAHabitaciones} />
       </View>
       <View onLayout={registrar("sobre")}>
         <SobreHotel />
@@ -53,8 +61,8 @@ export default function Inicio() {
       <View onLayout={registrar("daypass")}>
         <DayPass />
       </View>
-      <View onLayout={registrar("habitaciones")}>
-        <HabitacionesDestacadas />
+      <View onLayout={registrar("ubicacion")}>
+        <UbicacionHotel />
       </View>
     </PageShell>
   );

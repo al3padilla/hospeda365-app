@@ -18,6 +18,7 @@ const ICONOS: Record<(typeof AMENIDADES)[number]["icono"], NombreIcono> = {
   party: "fiesta",
   wifi: "wifi",
   clock: "reloj",
+  paw: "mascota",
 };
 
 export default function Amenidades() {
