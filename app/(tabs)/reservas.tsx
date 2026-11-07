@@ -1,23 +1,24 @@
-import { useEffect, useState } from "react";
 import HistorialReservas from "../../components/HistorialReservas";
-import { PageLoader } from "../../components/Loader";
 import PageShell from "../../components/PageShell";
-import { esperar } from "../../datos/carga";
+import { useAlerta } from "../../contexto/AlertaContext";
+import { useReservas } from "../../contexto/ReservasContext";
 
 export default function Reservas() {
-  const [listo, setListo] = useState(false);
-
-  useEffect(() => {
-    let activo = true;
-    void esperar().then(() => activo && setListo(true));
-    return () => {
-      activo = false;
-    };
-  }, []);
+  const { refrescar } = useReservas();
+  const { info, error: alertaError } = useAlerta();
 
   return (
-    <PageShell>
-      {listo ? <HistorialReservas /> : <PageLoader titulo="Cargando tus reservas…" />}
+    <PageShell
+      onRefrescar={async () => {
+        try {
+          await refrescar();
+          info("Historial actualizado");
+        } catch {
+          alertaError("No se pudo actualizar el historial");
+        }
+      }}
+    >
+      <HistorialReservas />
     </PageShell>
   );
 }

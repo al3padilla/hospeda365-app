@@ -1,3 +1,5 @@
+export { UBICACION } from "./ubicacion";
+
 export const AMENIDADES = [
   { id: "habitaciones", titulo: "Habitaciones dobles y familiares", icono: "bed" },
   { id: "restaurante", titulo: "Restaurante", icono: "utensils" },
@@ -7,6 +9,7 @@ export const AMENIDADES = [
   { id: "eventos", titulo: "Espacios para eventos", icono: "party" },
   { id: "wifi", titulo: "Wi‑Fi en áreas comunes", icono: "wifi" },
   { id: "recepcion", titulo: "Recepción y asistencia 24/7", icono: "clock" },
+  { id: "pets", titulo: "Pet Friendly", icono: "paw" },
 ] as const;
 
 export const DAYPASS_INCLUYE = [
@@ -31,5 +34,6 @@ export const CONTACTO = {
   telefono: "+50373081253",
   telefonoVisible: "503 73081253",
   email: "contacto@hotelterraazul.com",
-  direccion: "Av. Costera 365, Playa Azul",
+  direccion:
+    "Primera fila frente al mar, Playa Costa Azul, Sonsonate, El Salvador · Hotel Terra Azul",
 } as const;

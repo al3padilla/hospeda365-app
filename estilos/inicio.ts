@@ -36,6 +36,11 @@ export const estilosSearchBar = StyleSheet.create({
     marginBottom: 64,
     zIndex: 30,
   },
+  /** Sin solape negativo: para la pestaña Habitaciones. */
+  seccionPlana: {
+    marginTop: 16,
+    marginBottom: 24,
+  },
   formulario: {
     gap: 16,
     borderRadius: 12,
@@ -48,6 +53,24 @@ export const estilosSearchBar = StyleSheet.create({
   formularioFila: { flexDirection: "row", alignItems: "flex-start", padding: 20 },
   flex: { flex: 1 },
   mensaje: { marginTop: 12, textAlign: "center" },
+  tituloSecciones: { marginBottom: 4 },
+  acordeon: {
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: conAlfa(COLORES.sea, 0.12),
+    backgroundColor: COLORES.foam,
+    overflow: "hidden",
+  },
+  acordeonCabecera: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  acordeonTitulo: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10 },
+  acordeonCuerpo: { paddingHorizontal: 12, paddingBottom: 14 },
 });
 
 /** DatePicker */

@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { useRouter } from "expo-router";
 import { ActivityIndicator, Image, Pressable, View } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 import { COLORES, conAlfa } from "../constants/colors";
-import { DELAYS } from "../datos/carga";
+import { useAlerta } from "../contexto/AlertaContext";
+import { useReservas } from "../contexto/ReservasContext";
+import { DELAYS, esperar } from "../datos/carga";
 import {
   armarResumen,
   calcularNoches,
@@ -13,6 +16,7 @@ import {
 import { useDelayedAction } from "../hooks/useDelayedAction";
 import { useResponsive } from "../hooks/useResponsive";
 import DatePicker from "./DatePicker";
+import { PageLoader } from "./Loader";
 import Boton from "./ui/Boton";
 import EncabezadoSeccion from "./ui/EncabezadoSeccion";
 import Icono from "./ui/Icono";
@@ -34,6 +38,9 @@ export default function ConfirmacionReserva({
   checkOutInicial,
 }: ConfirmacionReservaProps) {
   const { esSm, esLg } = useResponsive();
+  const { exito, info } = useAlerta();
+  const { agregarReserva } = useReservas();
+  const router = useRouter();
   const habitacion = obtenerHabitacionPorId(habitacionId);
   const inicial = armarResumen(habitacionId, checkInInicial, checkOutInicial);
   const { runAfter } = useDelayedAction();
@@ -44,6 +51,7 @@ export default function ConfirmacionReserva({
   const [confirmado, setConfirmado] = useState(false);
   const [subiendo, setSubiendo] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  const [redirigiendo, setRedirigiendo] = useState(false);
 
   const noches = calcularNoches(checkIn, checkOut);
   const total = calcularTotal(habitacion.pricePerNight, noches);
@@ -75,6 +83,7 @@ export default function ConfirmacionReserva({
     runAfter(DELAYS.subida, () => {
       setArchivo({ nombre: asset.name, uri: asset.uri });
       setSubiendo(false);
+      info("Comprobante listo para enviar");
     });
   }
 
@@ -87,7 +96,38 @@ export default function ConfirmacionReserva({
     runAfter(DELAYS.confirmar, () => {
       setEnviando(false);
       setConfirmado(true);
+      exito("¡Reserva confirmada! Revisaremos tu comprobante pronto.");
+
+      agregarReserva({
+        id: `res-${Date.now()}`,
+        habitacionNombre: habitacion.name,
+        imagen: habitacion.imagen,
+        checkIn,
+        checkOut,
+        total,
+        estado: "pendiente",
+        adultos: 2,
+        ninos: 0,
+        bebes: 0,
+        precioPorNoche: habitacion.pricePerNight,
+      });
+
+      void (async () => {
+        await esperar(700);
+        setRedirigiendo(true);
+        await esperar(DELAYS.redirigir);
+        router.replace("/(tabs)/reservas");
+      })();
     });
+  }
+
+  if (redirigiendo) {
+    return (
+      <PageLoader
+        titulo="Reserva confirmada"
+        subtitulo="Te llevamos a Mis reservas para ver tu historial…"
+      />
+    );
   }
 
   return (

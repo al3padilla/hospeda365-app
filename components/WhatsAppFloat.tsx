@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react";
-import { Animated, Easing, Linking, Pressable } from "react-native";
+import { Animated, Easing, Linking, Platform, Pressable } from "react-native";
 import { COLORES } from "../constants/colors";
 import { CONTACTO } from "../datos/contenido";
 import { useResponsive } from "../hooks/useResponsive";
 import { vibrarToque } from "../utilidades/hapticos";
 import Icono from "./ui/Icono";
-import { estilosWhatsAppFloat as styles } from "../estilos/layout";
+import { estilosWhatsAppFloat as styles } from "../estilos/flotantes";
 
 export default function WhatsAppFloat() {
   const { esSm } = useResponsive();
@@ -16,8 +16,8 @@ export default function WhatsAppFloat() {
   useEffect(() => {
     const animacion = Animated.loop(
       Animated.sequence([
-        Animated.timing(flotar, { toValue: -3, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(flotar, { toValue: 0, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(flotar, { toValue: -3, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: Platform.OS !== "web" }),
+        Animated.timing(flotar, { toValue: 0, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: Platform.OS !== "web" }),
       ]),
     );
     animacion.start();

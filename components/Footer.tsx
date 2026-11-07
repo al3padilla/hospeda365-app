@@ -17,9 +17,10 @@ const FOOTER_LINKS: EnlaceFooter[] = [
   { label: "Sobre el hotel", seccion: "sobre" },
   { label: "Amenidades", seccion: "amenidades" },
   { label: "Day Pass", seccion: "daypass" },
+  { label: "Ubicación", seccion: "ubicacion" },
   { label: "Habitaciones", seccion: "habitaciones" },
   { label: "Mis reservas", ruta: "/reservas" },
-  { label: "Reservar", seccion: "buscar" },
+  { label: "Reservar", seccion: "habitaciones" },
 ];
 
 const TEXTO_SUAVE = "rgba(255,255,255,0.7)";

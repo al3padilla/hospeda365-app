@@ -6,6 +6,7 @@ import {
 } from "../contexto/HabitacionesContext";
 import { useResponsive } from "../hooks/useResponsive";
 import { resumenHuespedes } from "./GuestsPicker";
+import { EstadoVacio } from "./EstadoVista";
 import { LoaderInline, SkeletonCard } from "./Loader";
 import RoomCard from "./RoomCard";
 import Contenedor from "./ui/Contenedor";
@@ -70,12 +71,15 @@ export default function HabitacionesDestacadas() {
           </Rejilla>
         </View>
       ) : habitacionesFiltradas.length === 0 ? (
-        <View style={styles.vacio}>
-          <Texto color={COLORES.mist} tamano={15} style={styles.textoVacio}>
-            No hay habitaciones disponibles para{" "}
-            {busqueda ? pluralizar(busqueda.personas, "persona") : "ese número de personas"}. Prueba con menos huéspedes o quita el filtro.
-          </Texto>
-        </View>
+        <EstadoVacio
+          icono="buscar"
+          titulo="Sin resultados"
+          descripcion={`No hay habitaciones disponibles para ${
+            busqueda ? pluralizar(busqueda.personas, "persona") : "ese número de personas"
+          }. Prueba con menos huéspedes o quita el filtro.`}
+          accionTexto={busqueda ? "Quitar filtro" : undefined}
+          onAccion={busqueda ? limpiarBusqueda : undefined}
+        />
       ) : (
         <Rejilla columnas={numColumnas} separacion={32}>
           {habitacionesFiltradas.map((room) => (

@@ -103,65 +103,11 @@ export const estilosPageShell = StyleSheet.create({
   pagina: { flex: 1, backgroundColor: COLORES.background },
   flex: { flex: 1 },
   contenido: { flexGrow: 1 },
-});
-
-/** WhatsAppFloat */
-export const estilosWhatsAppFloat = StyleSheet.create({
-  contenedor: { position: "absolute", zIndex: 50 },
-  boton: {
-    backgroundColor: COLORES.whatsapp,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: COLORES.whatsapp,
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
+  overlayCarga: {
+    ...StyleSheet.absoluteFill,
+    zIndex: 80,
+    backgroundColor: "rgba(248,250,252,0.92)",
   },
-});
-
-/** Loader */
-export const estilosLoader = StyleSheet.create({
-  inline: { alignItems: "center", justifyContent: "center", gap: 12, paddingVertical: 32 },
-  pagina: {
-    flex: 1,
-    minHeight: 420,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 20,
-    paddingHorizontal: 16,
-    backgroundColor: COLORES.background,
-  },
-  circulo: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 1,
-    borderColor: conAlfa(COLORES.sea, 0.1),
-    backgroundColor: COLORES.foam,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  puntos: { flexDirection: "row", gap: 6, marginTop: 8 },
-  punto: { width: 8, height: 8, borderRadius: 4 },
-  skeletonCard: {
-    overflow: "hidden",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: conAlfa(COLORES.sea, 0.1),
-    backgroundColor: COLORES.foam,
-  },
-  textosPagina: { alignItems: "center" },
-  tituloPagina: { textAlign: "center" },
-  subtituloPagina: { marginTop: 4, textAlign: "center" },
-  skeletonImagen: { height: 176, borderRadius: 0 },
-  skeletonCuerpo: { padding: 20, gap: 12 },
-  skeletonTitulo: { height: 24, width: 160 },
-  skeletonLinea: { height: 16, width: "100%" },
-  skeletonLineaCorta: { height: 16, width: "75%" },
-  skeletonPie: { flexDirection: "row", justifyContent: "space-between", paddingTop: 8 },
-  skeletonPrecio: { height: 20, width: 80 },
-  skeletonBoton: { height: 36, width: 112 },
 });
 
 /** HojaModal */
@@ -201,3 +147,7 @@ export const estilosLogo = StyleSheet.create({
   nombre: { letterSpacing: -0.3 },
   subtitulo: { letterSpacing: 1.3 },
 });
+
+/** Compat: estilos de feedback/flotantes (imports legacy desde layout). */
+export { estilosLoader, estilosAlertaToast, estilosEstadoVista } from "./feedback";
+export { estilosWhatsAppFloat, estilosAccionesFlotantes } from "./flotantes";
