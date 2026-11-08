@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 
-import type { Usuario } from "../datos/usuarios";
+import type { Usuario } from "../types/usuario";
 import { servicioAuth, ErrorAuth, MENSAJES_ERROR } from "../servicios";
 import type { Credenciales, DatosRegistro } from "../servicios/tiposAuth";
 import {

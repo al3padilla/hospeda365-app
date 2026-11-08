@@ -1,21 +1,17 @@
 import { useState } from "react";
 import { useRouter } from "expo-router";
-import { ActivityIndicator, Image, Pressable, View } from "react-native";
-import * as DocumentPicker from "expo-document-picker";
-import { COLORES, conAlfa } from "../constants/colors";
+import { Image, View } from "react-native";
+import { COLORES } from "../constants/colors";
 import { useAlerta } from "../contexto/AlertaContext";
+import { useHabitaciones } from "../contexto/HabitacionesContext";
 import { useReservas } from "../contexto/ReservasContext";
-import { DELAYS, esperar } from "../datos/carga";
-import {
-  armarResumen,
-  calcularNoches,
-  calcularTotal,
-  formatearPrecio,
-  obtenerHabitacionPorId,
-} from "../datos/reserva";
-import { useDelayedAction } from "../hooks/useDelayedAction";
+import { calcularNoches, calcularTotal, fechasPorDefecto, formatearPrecio } from "../datos/reserva";
 import { useResponsive } from "../hooks/useResponsive";
+import { elegirHabitacion } from "../servicios/habitaciones";
+import type { Habitacion } from "../types/hotel";
 import DatePicker from "./DatePicker";
+import { EstadoError, EstadoVacio } from "./EstadoVista";
+import GuestsPicker, { totalParaCapacidad, type Huespedes } from "./GuestsPicker";
 import { PageLoader } from "./Loader";
 import Boton from "./ui/Boton";
 import EncabezadoSeccion from "./ui/EncabezadoSeccion";
@@ -30,32 +26,75 @@ type ConfirmacionReservaProps = {
   checkOutInicial?: string | null;
 };
 
-type Comprobante = { nombre: string; uri: string };
-
 export default function ConfirmacionReserva({
   habitacionId,
   checkInInicial,
   checkOutInicial,
 }: ConfirmacionReservaProps) {
-  const { esSm, esLg } = useResponsive();
-  const { exito, info } = useAlerta();
-  const { agregarReserva } = useReservas();
   const router = useRouter();
-  const habitacion = obtenerHabitacionPorId(habitacionId);
-  const inicial = armarResumen(habitacionId, checkInInicial, checkOutInicial);
-  const { runAfter } = useDelayedAction();
+  const { obtenerHabitacion, cargando, error, reintentar } = useHabitaciones();
+  const habitacion = obtenerHabitacion(habitacionId);
 
-  const [checkIn, setCheckIn] = useState(inicial.checkIn);
-  const [checkOut, setCheckOut] = useState(inicial.checkOut);
-  const [archivo, setArchivo] = useState<Comprobante | null>(null);
-  const [confirmado, setConfirmado] = useState(false);
-  const [subiendo, setSubiendo] = useState(false);
+  if (cargando) return <PageLoader titulo="Cargando habitación…" />;
+  if (error) return <EstadoError mensaje={error} onReintentar={reintentar} />;
+  if (!habitacion) {
+    return (
+      <EstadoVacio
+        icono="cama"
+        titulo="Habitación no encontrada"
+        descripcion="La habitación que elegiste ya no está disponible en el catálogo del hotel."
+        accionTexto="Ver habitaciones"
+        onAccion={() => router.replace("/(tabs)/habitaciones")}
+      />
+    );
+  }
+
+  return (
+    <FormularioReserva
+      habitacion={habitacion}
+      checkInInicial={checkInInicial}
+      checkOutInicial={checkOutInicial}
+    />
+  );
+}
+
+function FormularioReserva({
+  habitacion,
+  checkInInicial,
+  checkOutInicial,
+}: {
+  habitacion: Habitacion;
+  checkInInicial?: string | null;
+  checkOutInicial?: string | null;
+}) {
+  const { esSm, esLg } = useResponsive();
+  const { exito, error: alertaError } = useAlerta();
+  const { busqueda } = useHabitaciones();
+  const { crearReserva } = useReservas();
+  const router = useRouter();
+  const defaults = fechasPorDefecto();
+
+  const [checkIn, setCheckIn] = useState(checkInInicial || defaults.checkIn);
+  const [checkOut, setCheckOut] = useState(checkOutInicial || defaults.checkOut);
+  const [huespedes, setHuespedes] = useState<Huespedes>(
+    busqueda
+      ? { adultos: busqueda.adultos, ninos: busqueda.ninos, bebes: busqueda.bebes }
+      : { adultos: Math.min(2, habitacion.capacity), ninos: 0, bebes: 0 },
+  );
   const [enviando, setEnviando] = useState(false);
-  const [redirigiendo, setRedirigiendo] = useState(false);
 
+  const personas = totalParaCapacidad(huespedes);
+  const asignada = elegirHabitacion(habitacion, personas);
+  const precioNoche = asignada?.precioNoche ?? habitacion.pricePerNight;
+  const fechasValidas = !!checkIn && !!checkOut && checkOut > checkIn;
   const noches = calcularNoches(checkIn, checkOut);
-  const total = calcularTotal(habitacion.pricePerNight, noches);
-  const ocupado = subiendo || enviando;
+  const total = calcularTotal(precioNoche, noches);
+
+  const aviso = !fechasValidas
+    ? "Selecciona la fecha de salida."
+    : !asignada
+      ? `No hay habitaciones ${habitacion.name} disponibles para ${pluralizar(personas, "persona")}.`
+      : null;
 
   function actualizarFechas(campo: "in" | "out", value: string) {
     if (campo === "in") {
@@ -64,70 +103,27 @@ export default function ConfirmacionReserva({
     } else {
       setCheckOut(value);
     }
-    setConfirmado(false);
   }
 
-  async function seleccionarArchivo() {
-    if (ocupado) return;
-    const resultado = await DocumentPicker.getDocumentAsync({
-      type: ["image/*", "application/pdf"],
-      copyToCacheDirectory: true,
-    });
-    if (resultado.canceled || !resultado.assets[0]) return;
-
-    const asset = resultado.assets[0];
-    setSubiendo(true);
-    setConfirmado(false);
-    setArchivo(null);
-
-    runAfter(DELAYS.subida, () => {
-      setArchivo({ nombre: asset.name, uri: asset.uri });
-      setSubiendo(false);
-      info("Comprobante listo para enviar");
-    });
-  }
-
-  function handleSubmit() {
-    if (!archivo || ocupado) return;
-
+  async function handleSubmit() {
+    if (enviando || aviso) return;
     setEnviando(true);
-    setConfirmado(false);
-
-    runAfter(DELAYS.confirmar, () => {
+    try {
+      await crearReserva({ habitacion, checkIn, checkOut, ...huespedes });
+      exito("Reserva registrada. Recepción la revisará y te confirmará.");
+      router.replace("/(tabs)/reservas");
+    } catch (e) {
+      const code = (e as { code?: string })?.code ?? "";
+      alertaError(
+        code.includes("permission-denied")
+          ? "No se pudo registrar la reserva: tu cuenta no tiene permiso. Contacta al hotel."
+          : e instanceof Error && !code
+            ? e.message
+            : "No se pudo registrar la reserva. Inténtalo de nuevo.",
+      );
+    } finally {
       setEnviando(false);
-      setConfirmado(true);
-      exito("¡Reserva confirmada! Revisaremos tu comprobante pronto.");
-
-      agregarReserva({
-        id: `res-${Date.now()}`,
-        habitacionNombre: habitacion.name,
-        imagen: habitacion.imagen,
-        checkIn,
-        checkOut,
-        total,
-        estado: "pendiente",
-        adultos: 2,
-        ninos: 0,
-        bebes: 0,
-        precioPorNoche: habitacion.pricePerNight,
-      });
-
-      void (async () => {
-        await esperar(700);
-        setRedirigiendo(true);
-        await esperar(DELAYS.redirigir);
-        router.replace("/(tabs)/reservas");
-      })();
-    });
-  }
-
-  if (redirigiendo) {
-    return (
-      <PageLoader
-        titulo="Reserva confirmada"
-        subtitulo="Te llevamos a Mis reservas para ver tu historial…"
-      />
-    );
+    }
   }
 
   return (
@@ -136,7 +132,7 @@ export default function ConfirmacionReserva({
         script="Casi listo"
         titulo="Confirmación de reserva"
         tamanoTitulo={esSm ? 44 : 34}
-        descripcion="Revisa el resumen de tu estancia, verifica el total y sube tu comprobante de pago para confirmar."
+        descripcion="Revisa el resumen de tu estancia y confirma. Tu reserva quedará pendiente hasta que recepción la valide."
         style={styles.encabezado}
       />
 
@@ -155,9 +151,11 @@ export default function ConfirmacionReserva({
                 <Texto peso="display" color={COLORES.sea} tamano={24}>
                   Habitación {habitacion.name}
                 </Texto>
-                <Texto color={COLORES.mist} tamano={14} style={styles.descripcionHabitacion}>
-                  {habitacion.description}
-                </Texto>
+                {habitacion.description ? (
+                  <Texto color={COLORES.mist} tamano={14} style={styles.descripcionHabitacion}>
+                    {habitacion.description}
+                  </Texto>
+                ) : null}
               </View>
             </View>
 
@@ -183,6 +181,8 @@ export default function ConfirmacionReserva({
               </View>
             </View>
 
+            <GuestsPicker value={huespedes} onChange={setHuespedes} />
+
             <View style={[{ gap: 12 }, esSm && { flexDirection: "row" }]}>
               <View style={[styles.dato, esSm && styles.flex]}>
                 <Icono nombre="luna" tamano={16} color={COLORES.coral} />
@@ -207,7 +207,7 @@ export default function ConfirmacionReserva({
               </View>
               <View style={styles.filaPrecio}>
                 <Texto color={COLORES.mist} tamano={14}>
-                  {formatearPrecio(habitacion.pricePerNight)} × {pluralizar(noches, "noche")}
+                  {formatearPrecio(precioNoche)} × {pluralizar(noches, "noche")}
                 </Texto>
                 <Texto color={COLORES.mist} tamano={14}>
                   {formatearPrecio(total)}
@@ -231,80 +231,28 @@ export default function ConfirmacionReserva({
         <View style={[styles.tarjeta, { gap: 20, padding: esSm ? 28 : 20 }, esLg && { flex: 2 }]}>
           <View>
             <Texto peso="display" color={COLORES.sea} tamano={24} style={styles.tituloPago}>
-              Comprobante de pago
+              Pago
             </Texto>
             <Texto color={COLORES.mist} tamano={14} style={styles.textoPago}>
-              Sube una captura o PDF de tu transferencia. Luego
-              confirma la reserva.
+              Al confirmar, la reserva queda registrada como pendiente. Recepción
+              validará la disponibilidad y te indicará cómo realizar el pago.
             </Texto>
           </View>
 
-          <Pressable
-            onPress={() => void seleccionarArchivo()}
-            disabled={ocupado}
-            accessibilityRole="button"
-            accessibilityLabel="Seleccionar comprobante"
-            style={({ pressed }) => [
-              styles.zonaArchivo,
-              archivo && { borderColor: conAlfa(COLORES.sea, 0.3), backgroundColor: COLORES.background },
-              pressed && { borderColor: conAlfa(COLORES.coral, 0.5), backgroundColor: COLORES.background },
-              ocupado && { opacity: 0.7 },
-            ]}
-          >
-            {subiendo ? (
-              <>
-                <ActivityIndicator size="large" color={COLORES.coral} />
-                <Texto peso="medio" color={COLORES.sea} tamano={14}>
-                  Procesando comprobante…
-                </Texto>
-                <Texto color={COLORES.mist} tamano={12}>
-                  Validando archivo, un momento
-                </Texto>
-              </>
-            ) : archivo ? (
-              <>
-                <Icono nombre="archivoImagen" tamano={40} color={COLORES.sea} />
-                <Texto peso="medio" color={COLORES.sea} tamano={14} style={styles.textoCentrado}>
-                  {archivo.nombre}
-                </Texto>
-                <Texto color={COLORES.mist} tamano={12}>
-                  Toca para cambiar el archivo
-                </Texto>
-              </>
-            ) : (
-              <>
-                <Icono nombre="subir" tamano={40} color={COLORES.mist} />
-                <Texto peso="medio" color={COLORES.sea} tamano={14}>
-                  Sube tu comprobante aquí
-                </Texto>
-                <Texto color={COLORES.mist} tamano={12} style={styles.textoCentrado}>
-                  Toca para seleccionar (JPG, PNG o PDF)
-                </Texto>
-              </>
-            )}
-          </Pressable>
+          {aviso ? (
+            <Texto color={COLORES.coral} tamano={14}>
+              {aviso}
+            </Texto>
+          ) : null}
 
           <Boton
             texto="Confirmar reserva"
             cargando={enviando}
-            textoCargando="Confirmando reserva…"
-            deshabilitado={!archivo || ocupado}
-            onPress={handleSubmit}
+            textoCargando="Registrando reserva…"
+            deshabilitado={!!aviso || enviando}
+            onPress={() => void handleSubmit()}
             style={styles.botonConfirmar}
           />
-
-          {confirmado ? (
-            <View style={styles.exito}>
-              <Icono nombre="checkCirculo" tamano={20} color={COLORES.coral} />
-              <Texto color={COLORES.sea} tamano={14} style={styles.expandir}>
-                ¡Reserva realizada con éxito! Tu comprobante{" "}
-                <Texto peso="bold" color={COLORES.sea} tamano={14}>
-                  {archivo?.nombre}
-                </Texto>{" "}
-                fue recibido correctamente.
-              </Texto>
-            </View>
-          ) : null}
         </View>
       </View>
     </View>

@@ -1,4 +1,4 @@
-import type { Usuario } from "../datos/usuarios";
+import type { Usuario } from "../types/usuario";
 import type { CodigoErrorAuth, Sesion } from "../servicios/tiposAuth";
 
 export type EstadoAuth =

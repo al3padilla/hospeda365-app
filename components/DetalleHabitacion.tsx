@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Image, Linking, Pressable, ScrollView, Share, StyleSheet, View } from "react-native";
 import { COLORES } from "../constants/colors";
 import { CONTACTO } from "../datos/contenido";
-import type { Habitacion } from "../datos/habitaciones";
+import type { Habitacion } from "../types/hotel";
 import { formatearPrecio } from "../datos/reserva";
 import { useResponsive } from "../hooks/useResponsive";
 import { vibrarToque } from "../utilidades/hapticos";

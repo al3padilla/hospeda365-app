@@ -7,11 +7,19 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { DELAYS, esperar } from "../datos/carga";
+import { mensajeErrorDatos } from "../servicios/esquemaFirestore";
 import {
-  RESERVAS_HISTORIAL,
-  type ReservaHistorial,
-} from "../datos/historialReservas";
+  crearReserva as crearReservaFirestore,
+  obtenerReservas,
+  observarReservas,
+  resolverReserva,
+  type NuevaReserva,
+  type ReservaDocumento,
+  type ResultadoReserva,
+} from "../servicios/reservas";
+import type { ReservaHistorial } from "../types/hotel";
+import { useAuth } from "./AuthContext";
+import { useHabitaciones } from "./HabitacionesContext";
 
 type ReservasContextValue = {
   reservas: ReservaHistorial[];
@@ -23,54 +31,77 @@ type ReservasContextValue = {
   error: string | null;
   refrescar: () => Promise<void>;
   reintentar: () => Promise<void>;
-  /** Agrega una reserva al historial (mock / tras confirmar). */
-  agregarReserva: (reserva: ReservaHistorial) => void;
+  crearReserva: (datos: Omit<NuevaReserva, "usuarioId">) => Promise<ResultadoReserva>;
 };
 
 const ReservasContext = createContext<ReservasContextValue | null>(null);
 
-/**
- * Historial con estados de carga/error sobre datos mock.
- * Misma forma que usara la suscripcion Firestore del punto 3.
- */
+/** Reservas del usuario autenticado en tiempo real (`reservations` filtrado por su UID). */
 export function ReservasProvider({ children }: { children: ReactNode }) {
-  const [reservas, setReservas] = useState<ReservaHistorial[]>([]);
+  const { usuario } = useAuth();
+  const { habitaciones } = useHabitaciones();
+  const usuarioId = usuario?.id ?? null;
+  const [documentos, setDocumentos] = useState<ReservaDocumento[]>([]);
   const [cargando, setCargando] = useState(true);
   const [refrescando, setRefrescando] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const cargar = useCallback(async (modo: "inicial" | "refresco") => {
-    if (modo === "inicial") setCargando(true);
-    else setRefrescando(true);
-    setError(null);
-
-    try {
-      await esperar(modo === "inicial" ? DELAYS.ruta : DELAYS.busqueda);
-      setReservas((prev) => {
-        // Conserva reservas agregadas en sesion (p. ej. recien confirmadas).
-        const idsMock = new Set(RESERVAS_HISTORIAL.map((r) => r.id));
-        const locales = prev.filter((r) => !idsMock.has(r.id));
-        return [...locales, ...RESERVAS_HISTORIAL];
-      });
-    } catch {
-      setError("No se pudo cargar tu historial de reservas.");
-      if (modo === "inicial") setReservas([]);
-    } finally {
-      setCargando(false);
-      setRefrescando(false);
-    }
-  }, []);
+  const [intento, setIntento] = useState(0);
 
   useEffect(() => {
-    void cargar("inicial");
-  }, [cargar]);
+    // Al cerrar sesión se descartan los datos del usuario anterior.
+    setDocumentos([]);
+    setError(null);
+    setCargando(true);
+    if (!usuarioId) return;
 
-  const refrescar = useCallback(() => cargar("refresco"), [cargar]);
-  const reintentar = useCallback(() => cargar("inicial"), [cargar]);
+    let cancelar = () => {};
+    try {
+      cancelar = observarReservas(
+        usuarioId,
+        (lista) => {
+          setDocumentos(lista);
+          setError(null);
+          setCargando(false);
+        },
+        (e) => {
+          setError(mensajeErrorDatos(e, "tu historial de reservas"));
+          setCargando(false);
+        },
+      );
+    } catch (e) {
+      setError(mensajeErrorDatos(e, "tu historial de reservas"));
+      setCargando(false);
+    }
+    return () => cancelar();
+  }, [usuarioId, intento]);
 
-  const agregarReserva = useCallback((reserva: ReservaHistorial) => {
-    setReservas((prev) => [reserva, ...prev.filter((r) => r.id !== reserva.id)]);
-  }, []);
+  const refrescar = useCallback(async () => {
+    if (!usuarioId) return;
+    setRefrescando(true);
+    try {
+      setDocumentos(await obtenerReservas(usuarioId));
+      setError(null);
+    } catch (e) {
+      throw new Error(mensajeErrorDatos(e, "tu historial de reservas"));
+    } finally {
+      setRefrescando(false);
+    }
+  }, [usuarioId]);
+
+  const reintentar = useCallback(async () => setIntento((n) => n + 1), []);
+
+  const crearReserva = useCallback(
+    async (datos: Omit<NuevaReserva, "usuarioId">) => {
+      if (!usuarioId) throw new Error("Tu sesión expiró. Inicia sesión de nuevo.");
+      return crearReservaFirestore({ ...datos, usuarioId });
+    },
+    [usuarioId],
+  );
+
+  const reservas = useMemo(
+    () => documentos.map((d) => resolverReserva(d, habitaciones)),
+    [documentos, habitaciones],
+  );
 
   const pendientes = useMemo(
     () => reservas.filter((r) => r.estado === "pendiente").length,
@@ -78,22 +109,11 @@ export function ReservasProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({
-      reservas,
-      pendientes,
-      cargando,
-      refrescando,
-      error,
-      refrescar,
-      reintentar,
-      agregarReserva,
-    }),
-    [reservas, pendientes, cargando, refrescando, error, refrescar, reintentar, agregarReserva],
+    () => ({ reservas, pendientes, cargando, refrescando, error, refrescar, reintentar, crearReserva }),
+    [reservas, pendientes, cargando, refrescando, error, refrescar, reintentar, crearReserva],
   );
 
-  return (
-    <ReservasContext.Provider value={value}>{children}</ReservasContext.Provider>
-  );
+  return <ReservasContext.Provider value={value}>{children}</ReservasContext.Provider>;
 }
 
 export function useReservas() {

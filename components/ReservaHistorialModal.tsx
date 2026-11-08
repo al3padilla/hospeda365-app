@@ -1,7 +1,7 @@
 import { Image, Pressable, ScrollView, View } from "react-native";
 import { COLORES } from "../constants/colors";
 import { calcularNoches, formatearFecha } from "../datos/fechas";
-import type { ReservaHistorial } from "../datos/historialReservas";
+import type { ReservaHistorial } from "../types/hotel";
 import { formatearPrecio } from "../datos/reserva";
 import { useResponsive } from "../hooks/useResponsive";
 import BadgeEstado from "./BadgeEstado";
