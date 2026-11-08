@@ -8,7 +8,7 @@ module.exports = () => {
     : undefined;
   return {
     ...expo,
-    owner: 'apolocreed',
+    owner: 'apolocreeds-team',
     extra: { ...expo.extra, eas: { ...expo.extra?.eas } },
     android: {
       ...expo.android,
