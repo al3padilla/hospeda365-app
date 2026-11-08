@@ -1,3 +1,5 @@
+import * as Google from "expo-auth-session/providers/google";
+import { loginGoogle } from "../services/googleAuth";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { useRouter } from "expo-router";
@@ -18,11 +20,55 @@ export default function FormularioLogin() {
   const { login, estaCargando, error, limpiarError } = useAuth();
 
   const [datos, setDatos] = useState<Credenciales>({ email: "", password: "" });
+  const [request, response, promptAsync] =
+  Google.useAuthRequest({
+    webClientId:
+      "515368888697-1jcvu3c5dpu1outi48g1cr534n1pkt13.apps.googleusercontent.com",
+  });
+  
   const [errores, setErrores] = useState<ErroresCampo<Credenciales>>({});
 
   useEffect(() => {
     if (error) vibrarError();
   }, [error]);
+
+  useEffect(() => {
+
+  async function loginConGoogle() {
+
+    if (
+      response?.type !==
+      "success"
+    ) {
+      return;
+    }
+
+    const token =
+      response.authentication
+        ?.idToken;
+
+    if (!token) {
+      return;
+    }
+
+    try {
+
+      await loginGoogle(
+        token
+      );
+
+      vibrarExito();
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
+
+  }
+
+    void loginConGoogle();
+  }, [response]);
 
   function actualizar(campo: keyof Credenciales, valor: string) {
     setDatos((prev) => ({ ...prev, [campo]: valor }));
@@ -93,6 +139,13 @@ export default function FormularioLogin() {
           onPress={() => void handleSubmit()}
           style={styles.botonEnviar}
         />
+
+        <Boton
+          texto="Continuar con Google"
+          variante="borde"
+          onPress={() => promptAsync()}
+        />
+        
       </View>
 
       <View style={styles.separador}>
