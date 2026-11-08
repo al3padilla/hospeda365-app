@@ -1,3 +1,4 @@
+import { loginGoogle } from '../services/googleAuth';
 import { onIdTokenChanged, signOut, updateProfile, type User } from 'firebase/auth';
 import { doc, getDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import { authenticate, authErrorMessage, restoreSession } from '../services/auth';
@@ -47,6 +48,11 @@ export const authFirebase: ServicioAuth = {
   login: ({ email, password }) => accesoSeguro(async () => {
     const user = await authenticate({ name: '', surname: '', email, password, confirmation: '' }, false);
     return crearSesion(user);
+  }),
+
+  loginGoogle: () => accesoSeguro(async () => {
+    const user = await loginGoogle();
+    return user ? crearSesion(user) : null;
   }),
 
   registrar: (datos) => accesoSeguro(async () => {

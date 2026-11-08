@@ -62,6 +62,8 @@ export type ServicioAuth = {
   /** Lanza `ErrorAuth` si las credenciales no son válidas. */
   login(credenciales: Credenciales): Promise<Sesion>;
 
+  loginGoogle?(): Promise<Sesion | null>;
+
   registrar(datos: DatosRegistro): Promise<Sesion>;
 
   logout(): Promise<void>;

@@ -30,6 +30,7 @@ test('new UI provider authenticates with real Firebase tokens, saves phone, rest
   const core = load('services/auth.ts', { './firebase': firebase, '../utils/authValidation': validation });
   const types = load('servicios/tiposAuth.ts');
   const { authFirebase: api } = load('servicios/authFirebase.ts', {
+    '../services/googleAuth': { loginGoogle: async () => { throw new Error('Not used by email integration'); } },
     '../services/auth': core, '../services/firebase': firebase, '../utils/authValidation': validation,
     '../validacion/auth': ui, './tiposAuth': types,
   });

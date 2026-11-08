@@ -1,3 +1,5 @@
+> Para el acceso con Google (web y móvil), consulta [google-login.md](google-login.md). Google móvil requiere una compilación nativa; Expo Go permite correo/contraseña.
+
 # Firebase: autenticación y perfiles de Hospeda365
 
 La aplicación móvil usa Firebase Authentication para correo/contraseña y Cloud Firestore para perfiles privados. Se conserva el diseño del mockup móvil. El SDK JavaScript de Firebase funciona con Expo Go; registrar una app **web** en la consola solo proporciona la configuración del SDK y no convierte este proyecto en un sitio web.
@@ -8,7 +10,7 @@ Tras integrar las nuevas pantallas de `main`, login, registro y perfil usan sus 
 
 1. Abre el proyecto `hospeda365-ee59d` en Firebase Console.
 2. En **Configuración del proyecto → General → Tus apps**, selecciona la aplicación **</>** y la opción **Config**. Si no existe, registra una app sin activar Hosting.
-3. Copia `.env.example` a `.env` y completa `apiKey`, `authDomain`, `projectId` y `appId` en sus variables correspondientes. Estos identificadores son públicos y Expo los incluye en la app. No uses cuentas de servicio, claves privadas ni Firebase Admin SDK en el cliente.
+3. El equipo comparte `.env` en Git con la configuración pública del proyecto. Al clonar el repositorio ya tendrás ese archivo; `.env.example` sirve como plantilla si necesitas recrearlo. Estos identificadores son públicos y Expo los incluye en la app. Para ajustes personales usa `.env.local`, excluido de Git. No uses cuentas de servicio, claves privadas ni Firebase Admin SDK en el cliente.
 4. En **Authentication → Sign-in method**, activa **Correo electrónico/contraseña**. No se usa acceso anónimo.
 5. En la política de contraseñas de Authentication configura modo **Require**, mínimo **12**, máximo **128**, y exige mayúscula, minúscula y número, para hacer cumplir en el servidor los requisitos del registro.
 6. Comprueba que esté activada la **protección contra enumeración de correos** en Authentication. La app muestra errores de login genéricos, pero esta protección también debe existir en el servicio.
@@ -20,7 +22,7 @@ El código no publica reglas ni cambia servicios de Firebase automáticamente. T
 
 ### Estado de la conexión verificada
 
-La configuración suministrada de `hospeda365-ee59d` está guardada en `.env`, excluido de Git. Firebase Authentication responde a la consulta de configuración pública y rechazó con `INVALID_LOGIN_CREDENTIALS` un único intento de login con una dirección aleatoria del dominio reservado `.invalid`; no se creó ninguna cuenta real. Firestore rechaza la lectura anónima del documento inexistente usado como comprobación; esto no sustituye la revisión de todas las reglas.
+La configuración pública suministrada de `hospeda365-ee59d` está guardada en `.env`, compartido en Git por acuerdo del equipo. Firebase Authentication responde a la consulta de configuración pública y rechazó con `INVALID_LOGIN_CREDENTIALS` un único intento de login con una dirección aleatoria del dominio reservado `.invalid`; no se creó ninguna cuenta real. Firestore rechaza la lectura anónima del documento inexistente usado como comprobación; esto no sustituye la revisión de todas las reglas.
 
 La consulta al servicio de política de contraseñas devolvió mínimo 6 y máximo 4096. Falta ajustar en la consola el mínimo a 12, el máximo a 128 y los requisitos de mayúscula, minúscula y número para igualar el registro. No hay una sesión administrativa de Firebase CLI en este equipo; las reglas y la política del proyecto real no se publicaron desde esta tarea.
 
