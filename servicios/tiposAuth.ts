@@ -1,4 +1,4 @@
-import type { Usuario } from "../datos/usuarios";
+import type { Usuario } from "../types/usuario";
 
 export type Credenciales = {
   email: string;

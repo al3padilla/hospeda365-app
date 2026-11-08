@@ -4,7 +4,7 @@
 
 La aplicación móvil usa Firebase Authentication para correo/contraseña y Cloud Firestore para perfiles privados. Se conserva el diseño del mockup móvil. El SDK JavaScript de Firebase funciona con Expo Go; registrar una app **web** en la consola solo proporciona la configuración del SDK y no convierte este proyecto en un sitio web.
 
-Tras integrar las nuevas pantallas de `main`, login, registro y perfil usan sus componentes visuales y un único proveedor `contexto/AuthContext.tsx`. `servicios/index.ts` selecciona `authFirebase`, que adapta Firebase al contrato de sesión de esas pantallas. `authMock` queda como material de desarrollo sin usarse en la app. Los datos de habitaciones y reservas del avance de `main` siguen siendo simulados: esta integración conecta la autenticación y los perfiles.
+Tras integrar las nuevas pantallas de `main`, login, registro y perfil usan sus componentes visuales y un único proveedor `contexto/AuthContext.tsx`. `servicios/index.ts` selecciona `authFirebase`, que adapta Firebase al contrato de sesión de esas pantallas. Habitaciones y reservas se leen de Firestore (`rooms` y `reservations`); la app ya no incluye datos simulados. Ver la sección "Habitaciones y reservas".
 
 ## Configuración del proyecto real
 
@@ -67,7 +67,7 @@ npm.cmd run test:firebase
 
 Las pruebas cubren formatos, longitudes, contraseñas, ausencia de credenciales en perfiles, errores controlados, recuperación de perfiles incompletos, registro/login mediante el SDK contra emuladores, acceso propio, bloqueo de anónimos, listado, perfiles ajenos y escalación de privilegios.
 
-Las pruebas adicionales de integración verifican el adaptador de las pantallas nuevas, tokens emitidos por Firebase, persistencia del teléfono, edición de perfil, restauración de sesión, desconexión de cuentas inactivas y rechazo de cuentas del personal. Los tokens del SDK se renuevan automáticamente y el contexto escucha sus cambios; no se usan los tokens ficticios de `authMock`.
+Las pruebas adicionales de integración verifican el adaptador de las pantallas nuevas, tokens emitidos por Firebase, persistencia del teléfono, edición de perfil, restauración de sesión, desconexión de cuentas inactivas y rechazo de cuentas del personal. Los tokens del SDK se renuevan automáticamente y el contexto escucha sus cambios.
 
 En un teléfono: crea una cuenta con un correo propio, revisa Authentication y `users/{uid}`, cierra sesión, intenta una contraseña incorrecta, vuelve a iniciar sesión y reinicia la app para comprobar la persistencia. No se crearon usuarios ni se probaron credenciales contra el proyecto real sin su configuración.
 
@@ -78,3 +78,12 @@ En un teléfono: crea una cuenta con un correo propio, revisa Authentication y `
 - [Firebase: acceso con contraseña y protección de enumeración](https://firebase.google.com/docs/auth/web/password-auth)
 - [Firebase: condiciones de las reglas de Firestore](https://firebase.google.com/docs/firestore/security/rules-conditions)
 - [Firebase App Check](https://firebase.google.com/docs/app-check)
+
+## Habitaciones y reservas
+
+- Catálogo: `contexto/HabitacionesContext.tsx` escucha en tiempo real la colección `rooms` con `where("activa", "==", true)`, solo con sesión iniciada: las reglas publicadas solo permiten al huésped leer habitaciones activas y rechazan la consulta sin ese filtro. Las habitaciones se agrupan por `tipo`; cada tarjeta muestra el menor `precioNoche` y la mayor `capacidad` del grupo. Se omiten los documentos sin `tipo`, `capacidad` o `precioNoche` válidos. Campos opcionales: `descripcion`, `amenidades` (o `caracteristicas`) y una imagen en `imagenUrl`, `imagen`, `foto`, `fotoUrl`, `fotos[]` o `imagenes[]` (URL http/https). Sin imagen se usa una foto general del hotel.
+- Mis reservas: `contexto/ReservasContext.tsx` escucha `reservations` con `where("usuarioId", "==", uid)`. Nunca se consulta la colección completa; las reglas también rechazan cualquier otra consulta. Al cerrar sesión se descartan los datos en memoria.
+- Nueva reserva: se crea con `usuarioId`, `habitacionId` (una habitación física del tipo elegido, con capacidad suficiente y fuera de mantenimiento, priorizando `estado: "disponible"`), `estado: "pendiente"`, `estadoPago: "sin_comprobante"`, `fechaEntrada` y `fechaSalida` como Timestamp, `noches`, `numeroHuespedes` (adultos + niños), `adultos`, `ninos`, `bebes`, `precioNoche`, `total` y `createdAt`.
+- La app no puede verificar choques de fechas con reservas de otros huéspedes (las reglas no se lo permiten). La disponibilidad real y el total los valida el personal al confirmar; para hacerlo automático se necesita una Cloud Function.
+- Comprobantes de pago: pendiente. Subir archivos requiere Firebase Storage y sus reglas.
+- El mapeo de campos está centralizado en `servicios/esquemaFirestore.ts`.

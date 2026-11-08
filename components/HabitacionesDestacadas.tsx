@@ -6,7 +6,7 @@ import {
 } from "../contexto/HabitacionesContext";
 import { useResponsive } from "../hooks/useResponsive";
 import { resumenHuespedes } from "./GuestsPicker";
-import { EstadoVacio } from "./EstadoVista";
+import { EstadoError, EstadoVacio } from "./EstadoVista";
 import { LoaderInline, SkeletonCard } from "./Loader";
 import RoomCard from "./RoomCard";
 import Contenedor from "./ui/Contenedor";
@@ -35,7 +35,8 @@ function DetalleFiltro({ busqueda }: { busqueda: CriteriosBusqueda }) {
 
 export default function HabitacionesDestacadas() {
   const { columnas, esSm } = useResponsive();
-  const { habitacionesFiltradas, busqueda, cargando, limpiarBusqueda } = useHabitaciones();
+  const { habitaciones, habitacionesFiltradas, busqueda, cargando, error, reintentar, limpiarBusqueda } =
+    useHabitaciones();
   const numColumnas = columnas({ base: 1, sm: 2, lg: 3 });
 
   return (
@@ -55,21 +56,28 @@ export default function HabitacionesDestacadas() {
           </View>
         ) : (
           <Texto color={COLORES.mist} tamano={15} style={styles.descripcion}>
-            Desde la opción Básica hasta Platinum: elige el nivel de comodidad
-            que mejor se adapte a tu viaje.
+            Elige el nivel de comodidad que mejor se adapte a tu viaje.
           </Texto>
         )}
       </View>
 
       {cargando ? (
-        <View accessibilityLabel="Buscando habitaciones">
-          <LoaderInline texto="Buscando habitaciones…" />
+        <View accessibilityLabel="Cargando habitaciones">
+          <LoaderInline texto="Cargando habitaciones…" />
           <Rejilla columnas={numColumnas} separacion={32}>
             {Array.from({ length: 3 }, (_, i) => (
               <SkeletonCard key={i} />
             ))}
           </Rejilla>
         </View>
+      ) : error ? (
+        <EstadoError mensaje={error} onReintentar={reintentar} />
+      ) : habitaciones.length === 0 ? (
+        <EstadoVacio
+          icono="cama"
+          titulo="Aún no hay habitaciones"
+          descripcion="El hotel todavía no tiene habitaciones publicadas. Vuelve a intentarlo más tarde."
+        />
       ) : habitacionesFiltradas.length === 0 ? (
         <EstadoVacio
           icono="buscar"

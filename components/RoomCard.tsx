@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Image, Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
 import { COLORES } from "../constants/colors";
-import type { Habitacion } from "../datos/habitaciones";
+import type { Habitacion } from "../types/hotel";
 import { rutaConfirmacion } from "../datos/reserva";
 import DetalleHabitacion from "./DetalleHabitacion";
 import HojaModal from "./HojaModal";
