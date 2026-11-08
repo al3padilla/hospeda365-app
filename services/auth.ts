@@ -54,7 +54,10 @@ export async function authenticate(values: AuthValues, register: boolean) {
 // Restored sessions must also respect the web's logical account deactivation.
 export async function restoreSession(user: User) {
   try {
-    await ensureProfile(user, user.displayName || 'Huésped', '');
+    const candidate = normalizeName(user.displayName || '');
+    const name = candidate.length >= 3 && candidate.length <= 100
+      && /^[\p{L}\p{M}]+(?:[ '\u2019-][\p{L}\p{M}]+)*$/u.test(candidate) ? candidate : 'Huésped';
+    await ensureProfile(user, name, '');
     return user;
   } catch (error) {
     await signOut(getFirebase().auth);
@@ -88,6 +91,22 @@ export function authErrorMessage(error: unknown): string {
     case 'permission-denied':
     case 'firestore/permission-denied':
       return 'No se pudo acceder a tu perfil. Contacta al administrador para revisar los permisos de la base de datos.';
+    case 'auth/unauthorized-domain':
+      return 'Este dominio no está autorizado en Firebase Authentication. Contacta al administrador.';
+    case 'auth/popup-blocked':
+      return 'El navegador bloqueó la ventana de Google. Permite ventanas emergentes y vuelve a intentarlo.';
+    case 'auth/account-exists-with-different-credential':
+      return 'Ya existe una cuenta con otro método de acceso. Ingresa con ese método antes de vincular Google.';
+    case 'app/google-development-build-required':
+      return 'Google requiere una compilación de desarrollo o la app instalada. En Expo Go puedes ingresar con correo y contraseña.';
+    case 'app/google-not-configured':
+    case 'DEVELOPER_ERROR':
+    case '10':
+      return 'Falta configurar Google: revisa el cliente web, el identificador de la app y su certificado SHA-1.';
+    case 'PLAY_SERVICES_NOT_AVAILABLE':
+      return 'Google Play Services no está disponible o necesita actualizarse.';
+    case 'app/google-missing-token':
+      return 'Google no devolvió una credencial válida. Revisa la configuración del cliente web.';
     case 'auth/operation-not-allowed':
     case 'auth/invalid-api-key':
     case 'auth/app-not-authorized':

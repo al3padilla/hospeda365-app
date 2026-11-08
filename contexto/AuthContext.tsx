@@ -36,6 +36,7 @@ type AuthContextValue = {
 
   // Devuelven `true` si salió bien, para que la pantalla navegue.
   login: (credenciales: Credenciales) => Promise<boolean>;
+  loginGoogle: () => Promise<boolean>;
   registrar: (datos: DatosRegistro) => Promise<boolean>;
   logout: () => Promise<void>;
   actualizarPerfil: (cambios: Partial<Usuario>) => Promise<boolean>;
@@ -111,6 +112,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [manejarError],
   );
 
+  const loginGoogle = useCallback(async (): Promise<boolean> => {
+    if (operacion.current) return false;
+    operacion.current = true;
+    generacion.current++;
+    dispatch({ type: 'OPERACION_INICIADA' });
+    try {
+      if (!servicioAuth.loginGoogle) throw new ErrorAuth('error_desconocido', 'Google no está disponible.');
+      const sesion = await servicioAuth.loginGoogle();
+      if (!sesion) {
+        dispatch({ type: 'SESION_CERRADA' });
+        return false;
+      }
+      dispatch({ type: 'AUTENTICACION_EXITOSA', payload: sesion });
+      return true;
+    } catch (error) {
+      manejarError(error);
+      return false;
+    } finally {
+      operacion.current = false;
+    }
+  }, [manejarError]);
+
   const registrar = useCallback(
     async (datos: DatosRegistro): Promise<boolean> => {
       if (operacion.current) return false;
@@ -183,12 +206,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       nombreCompleto: selNombreCompleto(state),
       iniciales: selIniciales(state),
       login,
+      loginGoogle,
       registrar,
       logout,
       actualizarPerfil,
       limpiarError,
     }),
-    [state, login, registrar, logout, actualizarPerfil, limpiarError],
+    [state, login, loginGoogle, registrar, logout, actualizarPerfil, limpiarError],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

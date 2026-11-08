@@ -13,6 +13,8 @@ expo-env.d.ts
 .kotlin/
 *.orig.*
 *.jks
+*.keystore
+credentials.json
 *.p8
 *.p12
 *.key
@@ -30,7 +32,10 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# Shared public client configuration is tracked in .env.
+# Keep machine-specific overrides out of Git.
+/google-services.json
+/GoogleService-Info.plist
 .env*.local
 .env.*
 !.env.example
