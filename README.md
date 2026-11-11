@@ -106,6 +106,7 @@ Integrantes:
 - Jason Oswaldo Sosa Hernández | SH210738 
 
 ---
+Creación de video demostrativo
 
 ## 📄 Licencia
 
