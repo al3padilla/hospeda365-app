@@ -110,6 +110,14 @@ Creación de video demostrativo
 
 ## 📄 Licencia
 
+Este proyecto está protegido bajo la licencia **Creative Commons Atribución-NoComercial-CompartirIgual 4.0 Internacional (CC BY-NC-SA 4.0)**.
+
+[![Licencia Creative Commons](https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png)](http://creativecommons.org/licenses/by-nc-sa/4.0/deed.es)
+
+Consulta el archivo [LICENSE](./LICENSE) para más detalles sobre los términos de uso.
+
+## 📄 Licencia
+
 Este proyecto se encuentra bajo la licencia MIT.
 
 ---
