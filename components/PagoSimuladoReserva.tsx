@@ -1,10 +1,8 @@
 import { useRef, useState } from "react";
 import { TextInput, View } from "react-native";
-import { sendEmailVerification } from "firebase/auth";
 import { COLORES } from "../constants/colors";
 import { useAlerta } from "../contexto/AlertaContext";
-import { getFirebase } from "../services/firebase";
-import { abrirComprobante, simuladorConfigurado, solicitarPagoSimulado } from "../servicios/pagoSimulado";
+import { abrirComprobante } from "../servicios/pagoSimulado";
 import { registrarComprobanteSimulado } from "../servicios/reservas";
 import type { ReservaHistorial } from "../types/hotel";
 import Boton from "./ui/Boton";
@@ -15,12 +13,9 @@ const CAMPO = { borderWidth: 1, borderColor: COLORES.mist, borderRadius: 8, padd
 
 export default function PagoSimuladoReserva({ reserva }: { reserva: ReservaHistorial }) {
   const { error } = useAlerta();
-  const [correo, setCorreo] = useState(getFirebase().auth.currentUser?.email ?? "");
   const [grupos, setGrupos] = useState(["", "", "", ""]);
   const [terminacion, setTerminacion] = useState("");
   const [ocupado, setOcupado] = useState(false);
-  const [correoEnviado, setCorreoEnviado] = useState(false);
-  const [verificacionPendiente, setVerificacionPendiente] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const campos = useRef<(TextInput | null)[]>([]);
   const pendiente = reserva.estado === "confirmada" && reserva.estadoPago === "sin_comprobante";
@@ -52,24 +47,14 @@ export default function PagoSimuladoReserva({ reserva }: { reserva: ReservaHisto
     }
   }
 
-  async function enviarCorreo() {
-    const resultado = await solicitarPagoSimulado(reserva.id, correo.trim(), true);
-    setCorreoEnviado(resultado.enviado);
-    setVerificacionPendiente(!resultado.correoVerificado);
-    setMensaje(resultado.enviado ? "Comprobante enviado a tu correo."
-      : resultado.correoVerificado ? "El comprobante está disponible. El envío por correo quedó pendiente."
-      : "El comprobante está disponible. Verifica tu correo para recibirlo.");
-  }
-
   async function simular() {
     if (!grupos.every((grupo) => /^\d{4}$/.test(grupo))) return;
     const ultimos = grupos[3];
     setGrupos(["", "", "", ""]);
     await ejecutar(async () => {
-      await solicitarPagoSimulado(reserva.id, correo.trim(), false);
       await registrarComprobanteSimulado(reserva.id);
       setTerminacion(ultimos);
-      await enviarCorreo();
+      setMensaje("Comprobante registrado para revisión en el panel.");
     });
   }
 
@@ -78,7 +63,7 @@ export default function PagoSimuladoReserva({ reserva }: { reserva: ReservaHisto
   return (
     <View style={{ gap: 10, padding: 12, borderRadius: 10, backgroundColor: COLORES.background }}>
       <Texto peso="semi" color={COLORES.sea}>{pendiente ? "Pago simulado" : "Comprobante · " + reserva.id}</Texto>
-      {pendiente && simuladorConfigurado && (
+      {pendiente && (
         <>
           <Texto color={COLORES.mist}>Usa 16 dígitos ficticios. Ejercicio sin cargo.</Texto>
           <View style={{ flexDirection: "row", gap: 6 }}>
@@ -93,33 +78,15 @@ export default function PagoSimuladoReserva({ reserva }: { reserva: ReservaHisto
                 style={[CAMPO, { flex: 1, textAlign: "center", paddingHorizontal: 2 }]} />
             ))}
           </View>
-          <Texto color={COLORES.sea}>Correo de tu cuenta</Texto>
-          <TextInput value={correo} onChangeText={setCorreo} accessibilityLabel="Correo de tu cuenta"
-            editable={!ocupado} keyboardType="email-address" autoCapitalize="none" style={CAMPO} />
-          <Boton texto="Simular pago y enviar comprobante" cargando={ocupado}
-            deshabilitado={!correo.trim() || !grupos.every((grupo) => grupo.length === 4)} onPress={() => void simular()} />
+          <Boton texto="Simular pago" cargando={ocupado}
+            deshabilitado={!grupos.every((grupo) => grupo.length === 4)} onPress={() => void simular()} />
         </>
       )}
       {terminacion ? <Texto color={COLORES.mist}>Tarjeta ficticia terminada en {terminacion}</Texto> : null}
-      {conPdf && (simuladorConfigurado || !generado) && (
+      {conPdf && (
         <Boton texto="Abrir o compartir PDF" variante="borde" deshabilitado={ocupado}
           onPress={() => void ejecutar(() => abrirComprobante(reserva))} />
       )}
-      {generado && simuladorConfigurado && !correoEnviado && (
-        <Boton texto="Reintentar envío por correo" variante="texto" deshabilitado={ocupado}
-          onPress={() => void ejecutar(enviarCorreo)} />
-      )}
-      {verificacionPendiente && (
-        <Boton texto="Verificar mi correo" variante="texto" deshabilitado={ocupado}
-          onPress={() => void ejecutar(async () => {
-            const usuario = getFirebase().auth.currentUser;
-            if (!usuario) throw new Error("Inicia sesión para continuar.");
-            await sendEmailVerification(usuario);
-            setMensaje("Abre el enlace de verificación y vuelve a solicitar el envío.");
-          })} />
-      )}
-      {!simuladorConfigurado && (pendiente || generado) &&
-        <Texto color={COLORES.mist}>El servidor del pago simulado aún no está configurado.</Texto>}
       {mensaje ? <Texto accessibilityLiveRegion="polite" color={COLORES.sea}>{mensaje}</Texto> : null}
     </View>
   );
