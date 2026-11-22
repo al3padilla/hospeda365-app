@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Image, Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
 import { COLORES, conAlfa } from "../constants/colors";
+import { etiquetaEstadoPago } from "../servicios/reservas";
 import { useReservas } from "../contexto/ReservasContext";
 import { formatearFecha } from "../datos/fechas";
 import type { ReservaHistorial } from "../types/hotel";
@@ -26,6 +27,7 @@ function ReservaCard({
   onAbrir: () => void;
   horizontal: boolean;
 }) {
+  const pago = etiquetaEstadoPago(reserva);
   return (
     <Pressable
       onPress={onAbrir}
@@ -51,6 +53,7 @@ function ReservaCard({
           <BadgeEstado estado={reserva.estado} />
         </View>
 
+        {pago && <Texto peso="semi" color={COLORES.sea}>{pago}</Texto>}
         <View style={styles.filaEstado}>
           <Icono nombre="calendarioRango" tamano={16} color={COLORES.coral} />
           <Texto color={COLORES.mist} tamano={14}>
@@ -83,7 +86,8 @@ export default function HistorialReservas() {
   const router = useRouter();
   const { esLg, columnas } = useResponsive();
   const { reservas, cargando, error, reintentar } = useReservas();
-  const [seleccionada, setSeleccionada] = useState<ReservaHistorial | null>(null);
+  const [seleccionadaId, setSeleccionada] = useState<string | null>(null);
+  const seleccionada = reservas.find((reserva) => reserva.id === seleccionadaId) ?? null;
 
   const cols = columnas({ base: 1, md: 2 });
   const horizontal = esLg;
@@ -121,13 +125,13 @@ export default function HistorialReservas() {
               key={reserva.id}
               reserva={reserva}
               horizontal={horizontal}
-              onAbrir={() => setSeleccionada(reserva)}
+              onAbrir={() => setSeleccionada(reserva.id)}
             />
           ))}
         </Rejilla>
       )}
 
-      <ReservaHistorialModal reserva={seleccionada} onClose={() => setSeleccionada(null)} />
+      <ReservaHistorialModal key={seleccionadaId ?? "sin-seleccion"} reserva={seleccionada} onClose={() => setSeleccionada(null)} />
     </View>
   );
 }
