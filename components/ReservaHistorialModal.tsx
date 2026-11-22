@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { Image, Pressable, ScrollView, View } from "react-native";
 import { COLORES } from "../constants/colors";
 import { calcularNoches, formatearFecha } from "../datos/fechas";
 import type { ReservaHistorial } from "../types/hotel";
 import { formatearPrecio } from "../datos/reserva";
 import { useResponsive } from "../hooks/useResponsive";
+import { cancelarReservaHuesped, etiquetaEstadoPago } from "../servicios/reservas";
+import PagoSimuladoReserva from "./PagoSimuladoReserva";
 import BadgeEstado from "./BadgeEstado";
 import { Chip } from "./DetalleHabitacion";
 import HojaModal from "./HojaModal";
@@ -53,6 +56,26 @@ function CajaFecha({
 
 export default function ReservaHistorialModal({ reserva, onClose }: ReservaHistorialModalProps) {
   const { esSm } = useResponsive();
+  const [confirmar, setConfirmar] = useState(false);
+  const [cancelando, setCancelando] = useState(false);
+  const [error, setError] = useState("");
+  const pago = reserva ? etiquetaEstadoPago(reserva) : undefined;
+  const puedeCancelar = reserva?.estadoPago === "sin_comprobante" &&
+    (reserva.estado === "pendiente" || reserva.estado === "confirmada");
+
+  async function cancelar() {
+    if (!reserva || cancelando) return;
+    setCancelando(true);
+    setError("");
+    try {
+      await cancelarReservaHuesped(reserva.id);
+      setConfirmar(false);
+    } catch (causa) {
+      setError(causa instanceof Error ? causa.message : "No se pudo cancelar la reserva.");
+    } finally {
+      setCancelando(false);
+    }
+  }
   const movil = !esSm;
   const noches = reserva ? calcularNoches(reserva.checkIn, reserva.checkOut) : 0;
 
@@ -60,7 +83,7 @@ export default function ReservaHistorialModal({ reserva, onClose }: ReservaHisto
     <HojaModal visible={reserva !== null} onClose={onClose} anchoMaximo={512} etiqueta="Detalle de reserva">
       {reserva ? (
         <>
-          <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
+          <ScrollView keyboardShouldPersistTaps="handled" bounces={false} showsVerticalScrollIndicator={false}>
             <View style={[styles.cabecera, { height: movil ? 150 : 224 }]}>
               <Image source={reserva.imagen} resizeMode="cover" style={styles.foto} />
               <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Cerrar" style={styles.cerrar}>
@@ -99,6 +122,21 @@ export default function ReservaHistorialModal({ reserva, onClose }: ReservaHisto
                 <Chip compacto={movil} icono="personas" texto={textoHuespedes(reserva)} />
                 <Chip compacto={movil} icono="cama" texto={`${formatearPrecio(reserva.precioPorNoche)} / noche`} />
               </View>
+
+              {pago && <Texto peso="semi" color={COLORES.sea}>{pago}</Texto>}
+              <PagoSimuladoReserva reserva={reserva} />
+              {puedeCancelar && (
+                <View style={{ gap: 8 }}>
+                  {confirmar ? (
+                    <>
+                      <Texto color={COLORES.sea}>¿Quieres cancelar esta reserva?</Texto>
+                      <Boton texto="Confirmar cancelación" cargando={cancelando} onPress={() => void cancelar()} />
+                      <Boton texto="Conservar reserva" variante="borde" deshabilitado={cancelando} onPress={() => setConfirmar(false)} />
+                    </>
+                  ) : <Boton texto="Cancelar reserva" variante="texto" onPress={() => setConfirmar(true)} />}
+                </View>
+              )}
+              {error ? <Texto accessibilityLiveRegion="polite">{error}</Texto> : null}
 
               {movil ? null : (
                 <>

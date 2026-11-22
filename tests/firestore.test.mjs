@@ -91,6 +91,22 @@ test('reservation and payment ownership rules remain usable for guests', async (
   await assertSucceeds(getDocs(query(collection(db, 'reservations'), where('usuarioId', '==', 'alice'))));
   await assertFails(getDoc(doc(dbFor('bob'), 'reservations/own')));
   await assertFails(setDoc(doc(db, 'reservations/forged'), { ...reservation, usuarioId: 'bob' }));
+  const propia = doc(db, 'reservations/own');
+  const personal = doc(dbFor('reception'), 'reservations/own');
+  const cambios = { estado: 'cancelada', actualizadaEn: serverTimestamp() };
+  const comprobante = {
+    estadoPago: 'en_revision',
+    comprobanteGenerado: true,
+    comprobanteNombre: 'comprobante-simulado-own.pdf',
+    comprobanteUrl: null,
+    actualizadaEn: serverTimestamp(),
+  };
+  await assertFails(updateDoc(propia, comprobante));
+  await assertSucceeds(updateDoc(personal, { estado: 'confirmada' }));
+  await assertSucceeds(updateDoc(propia, comprobante));
+  await assertFails(updateDoc(propia, cambios));
+  await assertSucceeds(setDoc(doc(db, 'reservations/cancelable'), reservation));
+  await assertSucceeds(updateDoc(doc(db, 'reservations/cancelable'), cambios));
   await assertSucceeds(setDoc(doc(db, 'payments/own'), { usuarioId: 'alice', estado: 'en_revision', monto: 75 }));
   await assertFails(updateDoc(doc(db, 'payments/own'), { estado: 'aprobado' }));
   await assertSucceeds(updateDoc(doc(dbFor('reception'), 'payments/own'), { estado: 'aprobado' }));
