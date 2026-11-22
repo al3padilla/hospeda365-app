@@ -47,8 +47,21 @@ El proyecto fue desarrollado utilizando React Native y Expo, manteniendo una ún
 
 ## Mockups de Diseño (Etapa 1 - Figma)
 
-(IMG DISEÑO)
+[Consultar diseño original en Figma](https://www.figma.com/design/Ffof4DCOZYSizHP9uBn2H4/)
 
+### Login y catálogo de habitaciones
+
+<p align="center">
+  <img src="docs/mockups/figma-login.png" width="280" />
+  <img src="docs/mockups/figma-catalogo.png" width="280" />
+</p>
+
+### Reservas y confirmación
+
+<p align="center">
+  <img src="docs/mockups/figma-reservas.png" width="280" />
+  <img src="docs/mockups/figma-confirmacion.png" width="280" />
+</p>
 ---
 
 ## Estructura del Proyecto
