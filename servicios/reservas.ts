@@ -1,6 +1,8 @@
 import {
   addDoc,
   collection,
+  doc,
+  runTransaction,
   getDocsFromServer,
   onSnapshot,
   query,
@@ -32,6 +34,8 @@ export type ReservaDocumento = {
   total: number;
   estado: string;
   estadoPago: string;
+  comprobanteGenerado: boolean;
+  comprobanteUrl: string | null;
   adultos: number;
   ninos: number;
   bebes: number;
@@ -53,6 +57,8 @@ function leerReserva(id: string, datos: DocumentData): ReservaDocumento {
     total,
     estado: texto(datos.estado, "pendiente").toLowerCase(),
     estadoPago: texto(datos.estadoPago),
+    comprobanteGenerado: datos.comprobanteGenerado === true,
+    comprobanteUrl: texto(datos.comprobanteUrl) || null,
     adultos: numero(datos.adultos, huespedes),
     ninos: numero(datos.ninos),
     bebes: numero(datos.bebes),
@@ -80,6 +86,48 @@ export function observarReservas(
   return onSnapshot(consultaDelUsuario(usuarioId), (s) => alCambiar(ordenar(s)), alFallar);
 }
 
+export async function cancelarReservaHuesped(id: string): Promise<void> {
+  const { db } = getFirebase();
+  const referencia = doc(db, COLECCIONES.reservas, id);
+  await runTransaction(db, async (transaction) => {
+    const reserva = await transaction.get(referencia);
+    if (reserva.get("estado") === "cancelada") return;
+    if (!["pendiente", "confirmada"].includes(reserva.get("estado")) ||
+        reserva.get("estadoPago") !== "sin_comprobante") {
+      throw new Error("Esta reserva ya no se puede cancelar.");
+    }
+    transaction.update(referencia, { estado: "cancelada", actualizadaEn: serverTimestamp() });
+  });
+}
+
+export async function registrarComprobanteSimulado(id: string): Promise<void> {
+  const { db } = getFirebase();
+  const referencia = doc(db, COLECCIONES.reservas, id);
+  await runTransaction(db, async (transaction) => {
+    const reserva = await transaction.get(referencia);
+    const nombre = "comprobante-simulado-" + id + ".pdf";
+    if (reserva.get("estadoPago") === "en_revision" && reserva.get("comprobanteGenerado") === true &&
+        reserva.get("comprobanteNombre") === nombre) return;
+    if (reserva.get("estado") !== "confirmada" || reserva.get("estadoPago") !== "sin_comprobante") {
+      throw new Error("Esta reserva ya no está disponible para el pago simulado.");
+    }
+    transaction.update(referencia, {
+      estadoPago: "en_revision",
+      comprobanteGenerado: true,
+      comprobanteNombre: nombre,
+      comprobanteUrl: null,
+      actualizadaEn: serverTimestamp(),
+    });
+  });
+}
+
+export function etiquetaEstadoPago(reserva: ReservaHistorial): string | undefined {
+  if (reserva.estadoPago === "aprobado") return "Pago aprobado";
+  if (reserva.estadoPago === "rechazado") return "Pago rechazado";
+  if (reserva.estadoPago === "en_revision") return "Pago en revisión";
+  if (reserva.estado === "confirmada" && reserva.estadoPago === "sin_comprobante") return "Pendiente de pagar";
+}
+
 export async function obtenerReservas(usuarioId: string): Promise<ReservaDocumento[]> {
   return ordenar(await getDocsFromServer(consultaDelUsuario(usuarioId)));
 }
@@ -97,6 +145,8 @@ export function resolverReserva(reserva: ReservaDocumento, habitaciones: Habitac
     total: reserva.total,
     estado: reserva.estado,
     estadoPago: reserva.estadoPago,
+    comprobanteGenerado: reserva.comprobanteGenerado,
+    comprobanteUrl: reserva.comprobanteUrl,
     adultos: reserva.adultos,
     ninos: reserva.ninos,
     bebes: reserva.bebes,
@@ -137,10 +187,13 @@ export async function crearReserva(datos: NuevaReserva): Promise<ResultadoReserv
 
   const noches = calcularNoches(datos.checkIn, datos.checkOut);
   const total = asignada.precioNoche * noches;
-  const { db } = getFirebase();
+  const { auth, db } = getFirebase();
   const ref = await addDoc(collection(db, COLECCIONES.reservas), {
     usuarioId: datos.usuarioId,
     habitacionId: asignada.id,
+    habitacionNumero: asignada.numero,
+    habitacionNombre: datos.habitacion.name,
+    huespedNombre: auth.currentUser?.displayName || auth.currentUser?.email || "Huésped",
     estado: "pendiente",
     estadoPago: "sin_comprobante",
     fechaEntrada: aTimestamp(datos.checkIn),
@@ -152,7 +205,8 @@ export async function crearReserva(datos: NuevaReserva): Promise<ResultadoReserv
     bebes: datos.bebes,
     precioNoche: asignada.precioNoche,
     total,
-    createdAt: serverTimestamp(),
+    creadaEn: serverTimestamp(),
+    actualizadaEn: serverTimestamp(),
   });
   return { id: ref.id, asignada, total, noches };
 }

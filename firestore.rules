@@ -166,14 +166,23 @@ service cloud.firestore {
                     && request.resource.data.numeroHuespedes > 0
                     && request.resource.data.total >= 0;
 
-      // El huésped sólo puede cancelar o adjuntar comprobante.
-      // Confirmar, aprobar pagos y cambiar totales es cosa del personal.
       allow update: if activo() && (
                       esPersonal()
                       || (resource.data.usuarioId == request.auth.uid
-                          && noModifica(['usuarioId', 'total', 'noches',
-                                         'habitacionId', 'estadoPago'])
-                          && request.resource.data.estado in ['pendiente', 'cancelada'])
+                          && resource.data.estado in ['pendiente', 'confirmada']
+                          && resource.data.estadoPago == 'sin_comprobante'
+                          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'actualizadaEn'])
+                          && request.resource.data.estado == 'cancelada'
+                          && request.resource.data.actualizadaEn == request.time)
+                      || (resource.data.usuarioId == request.auth.uid
+                          && resource.data.estado == 'confirmada'
+                          && resource.data.estadoPago in ['sin_comprobante', 'rechazado']
+                          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estadoPago', 'comprobanteNombre', 'comprobanteGenerado', 'comprobanteUrl', 'actualizadaEn'])
+                          && request.resource.data.estadoPago == 'en_revision'
+                          && request.resource.data.actualizadaEn == request.time
+                          && request.resource.data.comprobanteGenerado == true
+                          && request.resource.data.comprobanteNombre == 'comprobante-simulado-' + reservaId + '.pdf'
+                          && request.resource.data.comprobanteUrl == null)
                     );
 
       // Las reservas no se borran: se cancelan. El histórico se conserva

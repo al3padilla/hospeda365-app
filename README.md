@@ -6,6 +6,14 @@ La aplicación permite a usuarios y administradores acceder a funcionalidades ho
 
 ---
 
+## Flujo de reservas y pago simulado
+
+La app usa el mismo proyecto Firebase que el panel web. Para simular el pago desde un dispositivo remoto solo se requiere acceso a ese proyecto Firebase.
+
+El huésped solicita la reserva y espera la confirmación para simular el pago. El número ficticio se borra al confirmar. Firestore registra el comprobante para revisión con el ID de la reserva y la app genera el PDF localmente. Desde el botón de compartir puedes elegir tu aplicación de correo y enviarlo manualmente. La cancelación está disponible mientras el pago siga sin comprobante.
+
+El uso del PDF requiere una compilación de desarrollo que incluya Expo FileSystem y Sharing.
+
 ## 📱 Descripción del Proyecto
 
 Hospeda365 App es la versión móvil del sistema Hospeda365, diseñada para ofrecer una experiencia de usuario moderna y accesible desde dispositivos Android e iOS.

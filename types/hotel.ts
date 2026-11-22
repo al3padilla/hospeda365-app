@@ -38,6 +38,8 @@ export type ReservaHistorial = {
   total: number;
   estado: EstadoReserva;
   estadoPago: string;
+  comprobanteGenerado: boolean;
+  comprobanteUrl: string | null;
   adultos: number;
   ninos: number;
   bebes: number;

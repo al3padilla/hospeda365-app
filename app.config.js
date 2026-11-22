@@ -20,6 +20,7 @@ module.exports = () => {
     },
     plugins: [
       ...expo.plugins,
+      "expo-sharing",
       ['@react-native-google-signin/google-signin', {
         // Android can build before iOS credentials are supplied.
         iosUrlScheme: iosUrlScheme || 'com.googleusercontent.apps.hospeda365-unconfigured',
