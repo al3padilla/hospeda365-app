@@ -6,14 +6,14 @@ La aplicación permite a huéspedes y administradores acceder a funcionalidades 
 
 ---
 
-## Enlaces del Proyecto
+## Enlaces del Proyecto:
 
 * **Repositorio Versión Web (Next.js):** [https://github.com/al3padilla/hospeda365-web](https://github.com/al3padilla/hospeda365-web)
 * **Aplicación Web en Producción (Vercel):** [https://hospeda365-web.vercel.app/](https://hospeda365-web.vercel.app/)
 
 ---
 
-## Descripción del Proyecto
+## Descripción del Proyecto:
 
 Hospeda365 App es la versión móvil del sistema Hospeda365, diseñada para ofrecer una experiencia de usuario moderna y accesible desde dispositivos Android e iOS.
 
@@ -21,7 +21,7 @@ El proyecto fue desarrollado utilizando React Native y Expo, manteniendo una ún
 
 ---
 
-## Módulos y Sincronización Multiplataforma
+## Módulos y Sincronización Multiplataforma:
 
 * **Autenticación completa:** Registro e inicio de sesión mediante correo electrónico y **Google** con control de acceso por roles (`huésped` y `admin`).
 * **Persistencia compartida en tiempo real:** Conexión directa con Cloud Firestore (`users`, `rooms` y `bookings`) sincronizada al instante con `hospeda365-web`.
@@ -30,7 +30,7 @@ El proyecto fue desarrollado utilizando React Native y Expo, manteniendo una ún
 
 ---
 
-## Tecnologías Utilizadas
+## Tecnologías Utilizadas:
 
 ### Frontend Móvil
 - React Native
@@ -45,7 +45,7 @@ El proyecto fue desarrollado utilizando React Native y Expo, manteniendo una ún
 
 ---
 
-## Mockups de Diseño (Etapa 1 - Figma)
+## Mockups de Diseño (Etapa 1 - Figma):
 
 [Consultar diseño original en Figma](https://www.figma.com/design/Ffof4DCOZYSizHP9uBn2H4/)
 
@@ -64,7 +64,7 @@ El proyecto fue desarrollado utilizando React Native y Expo, manteniendo una ún
 </p>
 ---
 
-## Estructura del Proyecto
+## Estructura del Proyecto:
 
 ```text
 hospeda365-app/
@@ -88,7 +88,7 @@ hospeda365-app/
 
 ---
 
-## Instalación
+## Instalación:
 
 ### 1. Clonar el repositorio
 
@@ -116,7 +116,7 @@ npx expo start
 
 ---
 
-## Ejecución en Dispositivo
+## Ejecución en Dispositivo:
 
 ### Android
 
@@ -138,7 +138,7 @@ npx expo start --web
 
 ---
 
-## Equipo de Desarrollo (EcoTech Solutions)
+## Equipo de Desarrollo (EcoTech Solutions):
 
 Integrantes:
 
@@ -150,7 +150,7 @@ Integrantes:
 
 ---
 
-## Licencia
+## Licencia:
 
 Este proyecto está protegido bajo la licencia **Creative Commons Atribución-NoComercial-CompartirIgual 4.0 Internacional (CC BY-NC-SA 4.0)**.
 
